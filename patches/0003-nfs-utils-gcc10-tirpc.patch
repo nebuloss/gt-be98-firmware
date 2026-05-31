@@ -1,0 +1,38 @@
+diff --git a/release/src/router/nfs-utils-1.3.4/utils/mountd/v4root.c b/release/src/router/nfs-utils-1.3.4/utils/mountd/v4root.c
+index f978f4ceef..e49b9400ff 100644
+--- a/release/src/router/nfs-utils-1.3.4/utils/mountd/v4root.c
++++ b/release/src/router/nfs-utils-1.3.4/utils/mountd/v4root.c
+@@ -28,8 +28,6 @@
+ #include "v4root.h"
+ #include "pseudoflavors.h"
+ 
+-int v4root_needed;
+-
+ static nfs_export pseudo_root = {
+ 	.m_next = NULL,
+ 	.m_client = NULL,
+diff --git a/release/src/router/nfs-utils-1.3.4/utils/statd/statd.c b/release/src/router/nfs-utils-1.3.4/utils/statd/statd.c
+index e5b4c980a8..14f29aaa99 100644
+--- a/release/src/router/nfs-utils-1.3.4/utils/statd/statd.c
++++ b/release/src/router/nfs-utils-1.3.4/utils/statd/statd.c
+@@ -35,6 +35,7 @@
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ 
++stat_chge	SM_stat_chge;
+ int	run_mode = 0;		/* foreground logging mode */
+ 
+ /* LH - I had these local to main, but it seemed silly to have 
+diff --git a/release/src/router/nfs-utils-1.3.4/utils/statd/statd.h b/release/src/router/nfs-utils-1.3.4/utils/statd/statd.h
+index 231ac7e076..bb1fecbb6a 100644
+--- a/release/src/router/nfs-utils-1.3.4/utils/statd/statd.h
++++ b/release/src/router/nfs-utils-1.3.4/utils/statd/statd.h
+@@ -41,7 +41,7 @@ extern void	load_state(void);
+ /*
+  * Host status structure and macros.
+  */
+-stat_chge		SM_stat_chge;
++extern stat_chge	SM_stat_chge;
+ #define MY_NAME		SM_stat_chge.mon_name
+ #define MY_STATE	SM_stat_chge.state
+ 

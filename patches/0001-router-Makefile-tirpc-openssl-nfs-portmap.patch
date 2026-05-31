@@ -1,0 +1,56 @@
+diff --git a/release/src/router/Makefile b/release/src/router/Makefile
+index 29f7fb7259..f5b269a84d 100644
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -3384,10 +3384,11 @@ ifeq ($(HND_ROUTER),y)
+ define makeBusybox
+ 	@$(MAKE) -C $(BUSYBOX_DIR) $(1) $(PARALLEL_BUILD) \
+ 		EXTRA_CFLAGS="-fPIC $(PRIVATE_EXTRACFLAGS) -I$(STAGEDIR)/usr/include -I$(TOOL_SYS_INCLUDE) \
++			$(if $(RTCONFIG_NFS),-I$(TOOL_SYS_INCLUDE)/tirpc,) \
+ 			$(if $(RTCONFIG_PROTECTION_SERVER),-DSECURITY_NOTIFY,) \
+ 			$(if $(RTCONFIG_BWDPI),-DBWDPI_LOGWAR,)" \
+ 		EXTRA_LDFLAGS="-L$(STAGEDIR)/usr/lib" \
+-		EXTRA_LDLIBS="$(if $(RTCONFIG_PROTECTION_SERVER),ptcsrv,)"
++		EXTRA_LDLIBS="$(if $(RTCONFIG_PROTECTION_SERVER),ptcsrv,) $(if $(RTCONFIG_NFS),tirpc,)"
+ endef
+ else
+ define makeBusybox
+@@ -3829,6 +3830,9 @@ endif
+ openssl-1.1-stage:
+ ifeq ($(RTCONFIG_OPENSSL11),y)
+ 	$(MAKE) -C openssl-1.1 install_sw DESTDIR=$(STAGEDIR)
++	@mkdir -p $(STAGEDIR)/usr/lib $(STAGEDIR)/usr/include
++	@cp -af $(STAGEDIR)/usr/local/lib/libssl* $(STAGEDIR)/usr/local/lib/libcrypto* $(STAGEDIR)/usr/lib/
++	@cp -af $(STAGEDIR)/usr/local/include/openssl $(STAGEDIR)/usr/include/
+ else
+ 	@true
+ endif
+@@ -9577,14 +9581,14 @@ nfs-utils-install:
+ 	$(STRIP) $(INSTALLDIR)/nfs-utils/usr/sbin/* $(INSTALLDIR)/nfs-utils/usr/lib/libnfs.so
+ 
+ nfs-utils-1.3.4/stamp-h1:
+-	cd nfs-utils-1.3.4 && CPPFLAGS="$(EXTRACFLAGS) -Os" knfsd_cv_bsd_signals=no \
++	cd nfs-utils-1.3.4 && CPPFLAGS="$(EXTRACFLAGS) -Os$(if $(HND_ROUTER), -I$(TOOL_SYS_INCLUDE)/tirpc,)" knfsd_cv_bsd_signals=no \
+ 	CC_FOR_BUILD=$(CC) $(CONFIGURE) --enable-nfsv3 --disable-nfsv4 --disable-nfsv41 \
+-	--disable-ipv6 --disable-tirpc --disable-nfsdcltrack \
+-	--disable-uuid --disable-gss --disable-mount --without-tcp-wrappers
++	--disable-ipv6 $(if $(HND_ROUTER),--with-tirpcinclude=$(TOOL_SYS_INCLUDE)/tirpc,--disable-tirpc) \
++	--disable-nfsdcltrack --disable-uuid --disable-gss --disable-mount --without-tcp-wrappers
+ 	@touch $@
+ 
+ nfs-utils-1.3.4: nfs-utils-1.3.4/stamp-h1
+-	$(MAKE) -C $@
++	$(MAKE) -C $@ $(PARALLEL_BUILD)
+ 
+ nfs-utils-1.3.4-clean:
+ 	-@$(MAKE) -C nfs-utils-1.3.4 distclean
+@@ -9599,7 +9603,8 @@ nfs-utils-1.3.4-install:
+ 	$(STRIP) $(INSTALLDIR)/nfs-utils-1.3.4/usr/sbin/*
+ 
+ portmap: portmap/Makefile
+-	$(MAKE) -C $@  EXTRACFLAGS="$(EXTRACFLAGS) -Os" NO_TCP_WRAPPER=y RPCUSER=nobody
++	$(MAKE) -C $@ EXTRACFLAGS="$(EXTRACFLAGS) -Os$(if $(HND_ROUTER), -I$(TOOL_SYS_INCLUDE)/tirpc,)" \
++		LDLIBS="$(if $(HND_ROUTER),-ltirpc,)" NO_TCP_WRAPPER=y RPCUSER=nobody
+ 
+ portmap-install:
+ 	install -D portmap/portmap $(INSTALLDIR)/portmap/usr/sbin/portmap

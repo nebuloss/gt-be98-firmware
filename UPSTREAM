@@ -1,0 +1,3 @@
+url=https://github.com/gnuton/asuswrt-merlin.ng.git
+ref=master
+# commit= filled by setup.sh after clone

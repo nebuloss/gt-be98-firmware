@@ -1,0 +1,14 @@
+# Upstream Merlin tree (cloned by setup.sh, not versioned here)
+vendor/
+
+# Build output & logs
+logs/
+*.log
+
+# IDE
+.idea/
+.vscode/
+.cursor/
+
+# Local toolchain extract (optional native build)
+merlin-toolchains/

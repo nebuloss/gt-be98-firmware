@@ -1,0 +1,32 @@
+diff --git a/release/src/router/portmap/portmap.c b/release/src/router/portmap/portmap.c
+index 96ba31bdb1..32fbeb1d25 100644
+--- a/release/src/router/portmap/portmap.c
++++ b/release/src/router/portmap/portmap.c
+@@ -126,6 +126,9 @@ int store_fd = -1;
+ static void dump_table(void);
+ static void load_table(void);
+ 
++#include "tirpc_compat.h"
++#undef svc_getcaller
++#define svc_getcaller(xprt) caller_sockaddr_in(xprt)
+ #include "pmap_check.h"
+ 
+  /*
+@@ -486,7 +489,7 @@ static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt)
+ 				    malloc((u_int)sizeof(struct flagged_pml));
+ 				pml = &fpml->pml;
+ 				fpml->priv =
+-					(ntohs(svc_getcaller(xprt)->sin_port)
++					(ntohs(caller_sin_port(xprt))
+ 					 < IPPORT_RESERVED);
+ 				pml->pml_map = reg;
+ 				pml->pml_next = 0;
+@@ -542,7 +545,7 @@ static void reg_service(struct svc_req *rqstp, SVCXPRT *xprt)
+ 				}
+ 				fpml = (struct flagged_pml*)pml;
+ 				if (fpml->priv &&
+-				    (ntohs(svc_getcaller(xprt)->sin_port)
++				    (ntohs(caller_sin_port(xprt))
+ 				     >= IPPORT_RESERVED)) {
+ 					ans = 0;
+ 					break;
