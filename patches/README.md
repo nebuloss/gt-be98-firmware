@@ -1,51 +1,48 @@
-# GT-BE98 (HND / glibc 2.32 / GCC 10) build patches
+# Patches GT-BE98 (HND / glibc 2.32 / GCC 10)
 
-Patches for building **Asuswrt-Merlin NG** on **BCM96813 / GT-BE98** with the
-`gnuton/asuswrt-merlin-toolchains-docker` image and SDK `release/src-rt-5.04behnd.4916`.
+Correctifs pour compiler **gnuton/asuswrt-merlin.ng** sur **BCM96813 / GT-BE98** avec la toolchain **arm softfp GCC 10.3** de [RMerl/am-toolchains](https://github.com/RMerl/am-toolchains) (build natif, sans Docker).
 
-Root cause: the ARM glibc 2.32 toolchain exposes **TI-RPC only** (`tirpc/rpc/rpc.h`),
-and GCC 10 defaults to **`-fno-common`**, which breaks several legacy router packages.
-
-## Apply patches
-
-From the repository root:
+## Application automatique
 
 ```bash
-patch -p1 < patches/gt-be98-hnd-glibc32/0001-router-Makefile-tirpc-openssl-nfs-portmap.patch
-patch -p1 < patches/gt-be98-hnd-glibc32/0002-lighttpd-embedded-build.patch
-patch -p1 < patches/gt-be98-hnd-glibc32/0003-nfs-utils-gcc10-tirpc.patch
-patch -p1 < patches/gt-be98-hnd-glibc32/0004-portmap-portmap.c.patch
-patch -p1 < patches/gt-be98-hnd-glibc32/0005-portmap-tirpc_compat.h.patch
+./setup.sh
+# ou, si vendor/ existe déjà :
+./tools/apply-patches.sh
 ```
 
-Or copy `release/src/router/portmap/tirpc_compat.h` and apply the other diffs with `git apply`.
+Les patches sont appliqués dans `vendor/asuswrt-merlin.ng/` avec `patch -p1` depuis la racine du clone Merlin.
 
-## Build
+## Application manuelle
+
+Depuis `vendor/asuswrt-merlin.ng/` :
 
 ```bash
-./build.sh gt-be98 default          # normal incremental build
-./build.sh gt-be98 default clean    # wipe stale objects for patched packages first
+patch -p1 < ../../patches/0001-router-Makefile-tirpc-openssl-nfs-portmap.patch
+patch -p1 < ../../patches/0002-lighttpd-embedded-build.patch
+patch -p1 < ../../patches/0003-nfs-utils-gcc10-tirpc.patch
+patch -p1 < ../../patches/0004-portmap-portmap.c.patch
+patch -p1 < ../../patches/0005-portmap-tirpc_compat.h.patch
 ```
 
-## Patch summary
+## Résumé
 
-| Patch | File(s) | Problem | Fix |
-|-------|---------|---------|-----|
-| 0001 | `release/src/router/Makefile` | Busybox NFS mount needs tirpc; OpenSSL 1.1 `install_sw` installs under `usr/local`; curl links `usr/lib`; nfs-utils had `--disable-tirpc`; portmap had no tirpc | Add `-I.../tirpc`, link `tirpc`/`libtirpc`; copy ssl/crypto to `stage/usr/lib`; enable TI-RPC for `HND_ROUTER`; portmap `-ltirpc` |
-| 0002 | `lighttpd-1.4.39/src/server.c`, `fdevent_poll.c` | `-DEMBEDDED_EANBLE=1` without `HAVE_SIGACTION`; undefined `signal_handler` / `srv` in poll stub | `embedded_signal_handler()`; `fprintf(stderr,…)` in non-poll stub |
-| 0003 | `nfs-utils-1.3.4` mountd/statd | GCC 10 duplicate `v4root_needed`, `SM_stat_chge` in headers | Single `v4root_needed` in `xtab.c` (already upstream layout); remove from `v4root.c`; `extern` + one definition in `statd.c` |
-| 0004–0005 | `portmap/portmap.c`, new `tirpc_compat.h` | libtirpc `svc_getcaller` is `sockaddr_in6` (`sin6_port`) | Map callers to `sockaddr_in` for legacy `pmap_check` |
+| Patch | Fichiers | Problème | Correction |
+|-------|----------|----------|------------|
+| 0001 | `release/src/router/Makefile` | Busybox NFS + tirpc ; OpenSSL sous `usr/local` ; nfs-utils sans tirpc ; portmap sans `-ltirpc` | Flags/link tirpc ; copie ssl vers `stage/usr/lib` ; TI-RPC HND |
+| 0002 | `lighttpd-1.4.39/src/server.c`, `fdevent_poll.c` | `EMBEDDED_EANBLE` sans handlers autoconf | `embedded_signal_handler()` ; stub poll sans `srv` |
+| 0003 | `nfs-utils-1.3.4` mountd/statd | Duplicates GCC 10 `v4root_needed`, `SM_stat_chge` | Une définition ; `extern` dans header |
+| 0004–0005 | `portmap/portmap.c`, `tirpc_compat.h` | libtirpc `sockaddr_in6` / `sin6_port` | Shim vers API `sockaddr_in` |
 
 ## Notes
 
-- **nfs-utils `xtab.c`**: `int v4root_needed` must remain in `support/export/xtab.c` (feeds `libexport.a`). Patch 0003 only removes the duplicate in `utils/mountd/v4root.c`.
-- **lighttpd autotools**: If `configure` was re-run in-tree, ignore unrelated diffs under `lighttpd-1.4.39/configure*`; only `src/server.c` and `src/fdevent_poll.c` are required.
-- **Verified** on 2026-05-31: full `make FORCE=1 gt-be98` exit 0, image under `release/src-rt-5.04behnd.4916/targets/96813GW/`.
+- **`v4root_needed`** : doit rester défini dans `support/export/xtab.c` (libexport). Le patch ne retire que le doublon dans `utils/mountd/v4root.c`.
+- **lighttpd** : seuls `src/server.c` et `src/fdevent_poll.c` sont requis ; ignorer le bruit autotools si `configure` a été relancé ailleurs.
+- **Vérifié** : build complet `make FORCE=1 gt-be98` exit 0 (2026-05-31), images sous `targets/96813GW/`.
 
-## `build.sh` (repo root)
+## Après modification d’un patch
 
-Helper script (not part of the numbered patches):
+```bash
+./build.sh clean
+```
 
-- Stages BCM6813 **bwdpi** `tmcfg` header symlinks (required for GT-BE98).
-- Optional **`clean`** argument: clears busybox generated headers, openssl stage sync, and object files for curl/lighttpd/nfs-utils/portmap when iterating on these fixes.
-- Runs Docker with `bcm-hnd-ax-4.19be_soft.sh` and `make FORCE=1 <model>`.
+Voir [../docs/troubleshooting.md](../docs/troubleshooting.md).
