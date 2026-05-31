@@ -1,10 +1,13 @@
 #!/usr/bin/env bash
-# Clone upstream Merlin, prune unused SDKs, apply GT-BE98 patches.
+# Fetch toolchain, clone upstream Merlin, prune SDKs, apply GT-BE98 patches.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")" && pwd)"
 VENDOR="${ROOT}/vendor/asuswrt-merlin.ng"
 UPSTREAM_FILE="${ROOT}/UPSTREAM"
+
+echo "=== 1/4 Toolchain (RMerl/am-toolchains) ==="
+"${ROOT}/tools/fetch-toolchain.sh"
 
 # Override via env: UPSTREAM_REF=<tag> ./setup.sh
 if [[ -f "$UPSTREAM_FILE" ]]; then
@@ -14,6 +17,7 @@ fi
 UPSTREAM_URL="${UPSTREAM_URL:-https://github.com/gnuton/asuswrt-merlin.ng.git}"
 UPSTREAM_REF="${UPSTREAM_REF:-master}"
 
+echo "=== 2/4 Upstream Merlin ==="
 if [[ -d "${VENDOR}/.git" ]]; then
     echo "Vendor already present: ${VENDOR}"
     echo "To refresh: rm -rf vendor && ./setup.sh"
@@ -26,10 +30,10 @@ else
     fi
 fi
 
-echo "Pruning unused SDK trees ..."
+echo "=== 3/4 Prune unused SDK trees ==="
 "${ROOT}/tools/prune-vendor.sh"
 
-echo "Applying GT-BE98 patches ..."
+echo "=== 4/4 Apply GT-BE98 patches ==="
 "${ROOT}/tools/apply-patches.sh"
 
 COMMIT=$(git -C "${VENDOR}" rev-parse HEAD 2>/dev/null || echo unknown)
@@ -40,6 +44,8 @@ commit=${COMMIT}
 EOF
 
 echo ""
-echo "Upstream pinned: ${COMMIT}"
-echo "Build with:  ./build.sh"
-echo "Firmware:    vendor/asuswrt-merlin.ng/release/src-rt-5.04behnd.4916/targets/96813GW/"
+echo "Setup complete."
+echo "  Toolchain: toolchain/am-toolchains (see toolchain/TOOLCHAIN_PIN)"
+echo "  Upstream:  ${COMMIT}"
+echo "  Build:     ./build.sh"
+echo "  Firmware:  vendor/asuswrt-merlin.ng/release/src-rt-5.04behnd.4916/targets/96813GW/"

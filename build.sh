@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# Build GT-BE98 firmware (Docker + BCM HND toolchain).
+# Build GT-BE98 firmware (native host + local toolchain in toolchain/).
 #
 # Usage:
-#   ./setup.sh          # once: clone upstream + patches
+#   ./setup.sh          # once: toolchain + vendor + patches
 #   ./build.sh          # build
 #   ./build.sh clean    # rebuild patched packages from scratch
 set -euo pipefail
@@ -16,7 +16,6 @@ LOG_DIR="${ROOT}/logs"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 LOG_FILE="${LOG_DIR}/build_${TIMESTAMP}.log"
 IMAGE_DIR="${VENDOR}/release/${SDK}/targets/96813GW"
-DOCKER_IMAGE="gnuton/asuswrt-merlin-toolchains-docker:latest"
 
 [[ -d "${VENDOR}/release/${SDK}" ]] || {
     echo "Run ./setup.sh first (missing ${VENDOR})" >&2
@@ -26,7 +25,12 @@ DOCKER_IMAGE="gnuton/asuswrt-merlin-toolchains-docker:latest"
 mkdir -p "$LOG_DIR"
 log() { echo "[$(date '+%H:%M:%S')] $*" | tee -a "$LOG_FILE"; }
 
-log "=== GT-BE98 build ==="
+export GTBE98_ROOT="$ROOT"
+# shellcheck source=tools/env.sh
+source "${ROOT}/tools/env.sh"
+
+log "=== GT-BE98 build (native) ==="
+log "Cross: $(command -v arm-buildroot-linux-gnueabi-gcc)"
 [[ "$CLEAN" == "clean" ]] && log "Mode: clean"
 
 rm -f "${VENDOR}/release/${SDK}/chip_profile.tmp" \
@@ -62,16 +66,11 @@ if [[ "$CLEAN" == "clean" ]]; then
           "${VENDOR}/release/src/router/portmap/.depend"
 fi
 
-BUILD_CMDS="source /home/docker/envs/bcm-hnd-ax-4.19be_soft.sh"
-BUILD_CMDS+=" && cd /project/asuswrt-merlin.ng/release/${SDK}"
-BUILD_CMDS+=" && make FORCE=1 ${MODEL}"
-
 START_TS=$(date +%s)
-docker run --rm --user docker \
-    -v "${VENDOR}:/project/asuswrt-merlin.ng" \
-    "$DOCKER_IMAGE" \
-    bash -c "$BUILD_CMDS" \
-    2>&1 | tee -a "$LOG_FILE"
+(
+    cd "${VENDOR}/release/${SDK}"
+    make FORCE=1 "${MODEL}"
+) 2>&1 | tee -a "$LOG_FILE"
 EXIT_CODE=${PIPESTATUS[0]}
 ELAPSED=$(( $(date +%s) - START_TS ))
 

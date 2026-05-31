@@ -1,6 +1,9 @@
 # Upstream Merlin tree (cloned by setup.sh, not versioned here)
 vendor/
 
+# BCM cross-toolchains (cloned by tools/fetch-toolchain.sh)
+toolchain/
+
 # Build output & logs
 logs/
 *.log
@@ -9,6 +12,3 @@ logs/
 .idea/
 .vscode/
 .cursor/
-
-# Local toolchain extract (optional native build)
-merlin-toolchains/
