@@ -5,7 +5,7 @@ Correctifs pour compiler **gnuton/asuswrt-merlin.ng** sur **BCM96813 / GT-BE98**
 ## Application automatique
 
 ```bash
-./setup.sh
+./build.sh
 # ou, si vendor/ existe déjà :
 ./tools/apply-patches.sh
 ```
@@ -22,21 +22,55 @@ patch -p1 < ../../patches/0002-lighttpd-embedded-build.patch
 patch -p1 < ../../patches/0003-nfs-utils-gcc10-tirpc.patch
 patch -p1 < ../../patches/0004-portmap-portmap.c.patch
 patch -p1 < ../../patches/0005-portmap-tirpc_compat.h.patch
+patch -p1 < ../../patches/0006-router-config-ncurses-host-check.patch
+patch -p1 < ../../patches/0007-platform-native-toolchain-root.patch
+patch -p1 < ../../patches/0008-router-uboot-toolchain-root.patch
+patch -p1 < ../../patches/0009-router-host-ld-library-path.patch
+patch -p1 < ../../patches/0010-neon-cross-libxml2.patch
+patch -p1 < ../../patches/0011-ipset-cross-libmnl.patch
+patch -p1 < ../../patches/0012-ipset-pkg-config-optional.patch
+patch -p1 < ../../patches/0013-lldpd-cross-libxml2.patch
+patch -p1 < ../../patches/0014-cmake-policy-minimum.patch
+patch -p1 < ../../patches/0015-flac-cross-libogg.patch
+patch -p1 < ../../patches/0016-extralfags-cross-libgcc.patch
+patch -p1 < ../../patches/0017-pcre-stage-no-relink.patch
+patch -p1 < ../../patches/0018-accel-pptpd-plugins-cross.patch
+patch -p1 < ../../patches/0019-strongswan-skip-autoreconf.patch
+patch -p1 < ../../patches/0020-strongswan-autotools-bootstrap.patch
+patch -p1 < ../../patches/0021-nfs-utils-host-rpcgen.patch
+patch -p1 < ../../patches/0022-cjson-cmake-libcreduction.patch
 ```
 
 ## Résumé
 
 | Patch | Fichiers | Problème | Correction |
 |-------|----------|----------|------------|
-| 0001 | `release/src/router/Makefile` | Busybox NFS + tirpc ; OpenSSL sous `usr/local` ; nfs-utils sans tirpc ; portmap sans `-ltirpc` | Flags/link tirpc ; copie ssl vers `stage/usr/lib` ; TI-RPC HND |
+| 0001 | `release/src/router/Makefile` | Busybox NFS + tirpc ; OpenSSL stage ; nfs-utils ; portmap | tirpc ; copie ssl **si** `usr/local/lib` existe (`--prefix=/usr` sinon déjà dans `usr/lib`) |
 | 0002 | `lighttpd-1.4.39/src/server.c`, `fdevent_poll.c` | `EMBEDDED_EANBLE` sans handlers autoconf | `embedded_signal_handler()` ; stub poll sans `srv` |
 | 0003 | `nfs-utils-1.3.4` mountd/statd | Duplicates GCC 10 `v4root_needed`, `SM_stat_chge` | Une définition ; `extern` dans header |
 | 0004–0005 | `portmap/portmap.c`, `tirpc_compat.h` | libtirpc `sockaddr_in6` / `sin6_port` | Shim vers API `sockaddr_in` |
+| 0006 | `release/src/router/config/Makefile` | Test ncurses avec `main(){}` (GCC Arch) | `int main(void) { return 0; }` |
+| 0007 | `release/src-rt/platform.mak` | Chemins `/opt/toolchains` (Docker) | `GTBE98_TC_ROOT` (obligatoire, fourni par `./build.sh`) |
+| 0008 | `router/Makefile` (ebtables), `options_6813_nand.conf` | Idem pour ebtables / U-Boot GT-BE98 | `$(GTBE98_TC_ROOT)/...` |
+| 0009 | `router/Makefile` | `LD_LIBRARY_PATH:=$(TOOLCHAIN)/lib` casse host `cc1` | Pas de `LD_LIBRARY_PATH` si `GTBE98_TC_ROOT` défini |
+| 0010 | `router/Makefile` (neon) | `-lxml2` résout `/usr/lib` hôte (x86_64) | Liens explicites vers `$(STAGEDIR)/usr/lib/*.so` |
+| 0011 | `router/Makefile` (ipset-7.6) | `-lmnl` résout `/usr/lib` hôte | `$(TOP)/libmnl-1.0.4/src/.libs/libmnl.so` |
+| 0012 | `ipset-7.6/configure.ac` | `PKG_CONFIG=false` / pkg-config absent | `PKG_PROG_PKG_CONFIG` optionnel ; `libmnl_*` en configure |
+| 0013 | `router/Makefile` (lldpd) | `-lxml2` → `/usr/lib` hôte | `XML2_LIBS` + sed → `$(STAGEDIR)/usr/lib/libxml2.so` |
+| 0014 | `router/Makefile` (cmake) | CMake 4.x + `VERSION 2.6` | `$(CMAKE)` avec `-DCMAKE_POLICY_VERSION_MINIMUM=3.5` si `GTBE98_TC_ROOT` |
+| 0015 | `router/Makefile` (flac) | `-L/lib -logg` (prefix vide) | `--with-ogg-includes` / `--with-ogg-libraries` |
+| 0016 | `router/Makefile` (`EXTRALDFLAGS`) | `-lgcc_s` → `/usr/lib` | chemin explicite `$(TOOLCHAIN)/arm-.../libgcc_s.so` |
+| 0017 | `router/Makefile` (pcre stage) | libtool relink → `/usr/lib/libc.a` | `pcre-8.31-stage` copie `.libs/` vers `$(STAGEDIR)` |
+| 0018 | `accel-pptpd` plugins | host `gcc` + C23 → `typedef bool` | cross `CC` + `-std=gnu99` dans `plugins/Makefile` |
+| 0019 | `router/Makefile` + `tools/strongswan-ensure-aux.sh` | autoreconf / aux manquants | pas d’`autoreconf` systématique ; copie `config.guess` etc. depuis automake |
+| 0020 | `strongswan/configure.ac` | `Makefile.in` absent / `AC_LIB_PREFIX` | retire `AC_LIB_PREFIX` ; `autoreconf -ifi` si pas de `Makefile.in` |
+| 0021 | `router/Makefile`, `nfs-utils-1.3.4` | `rpcgen`: cannot execute binary file (ARM rpcgen sur hôte x86_64) | pas de `CC_FOR_BUILD=$(CC)` ; build hôte `rpcgen` + ne pas le reconstruire en cross |
+| 0022 | `router-sysdep/cjson`, `router/Makefile` | `libcreduction`: Missing `libcjson.so.1` (`bp3` sans lib installée) | CMake 4.x + `install` cassé (`.libs`) ; erreurs `cjson` non ignorées si `GTBE98_TC_ROOT` |
 
 ## Notes
 
 - **`v4root_needed`** : doit rester défini dans `support/export/xtab.c` (libexport). Le patch ne retire que le doublon dans `utils/mountd/v4root.c`.
-- **lighttpd** : seuls `src/server.c` et `src/fdevent_poll.c` sont requis ; ignorer le bruit autotools si `configure` a été relancé ailleurs.
+- **lighttpd** : seuls `src/server.c` et `src/fdevent_poll.c` sont requis ; patch idempotent (`GTBE98_LIGHTTPD_EMBEDDED_SIG`). Si `redefinition of embedded_signal_handler` : supprimer les blocs dupliqués dans `server.c` ou `git checkout -- release/src/router/lighttpd-1.4.39/src/server.c` puis `./tools/apply-patches.sh`.
 - **Vérifié** : build complet `make FORCE=1 gt-be98` exit 0 (2026-05-31), images sous `targets/96813GW/`.
 
 ## Après modification d’un patch

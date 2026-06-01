@@ -1,0 +1,78 @@
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -1357,6 +1357,13 @@ define CMAKE_CrossOptions
+ 	)
+ endef
+ 
++# Arch CMake 4.x rejects cmake_minimum_required < 3.5 (usbmode, libical, …).
++ifneq ($(GTBE98_TC_ROOT),)
++CMAKE := cmake -DCMAKE_POLICY_VERSION_MINIMUM=3.5
++else
++CMAKE := cmake
++endif
++
+ # !!TB
+ ifeq ($(RTCONFIG_USB),y)
+ #obj-y += p910nd
+@@ -3449,7 +3457,7 @@ httpd-install:
+ 	$(MAKE) -C httpd INSTALLDIR=$(INSTALLDIR)/httpd install
+ 
+ libcbor-0.11/Makefile: libcbor-0.11/src/CMakeLists.txt
+-	cd libcbor-0.11 && cmake -DCMAKE_INSTALL_PREFIX=/usr \
++	cd libcbor-0.11 && $(CMAKE) -DCMAKE_INSTALL_PREFIX=/usr \
+ 	-DCMAKE_BUILD_TYPE=release \
+ 	-DBUILD_SHARED_LIBS=ON
+ 
+@@ -4222,7 +4230,7 @@ getdns/build/Makefile:
+ 	@rm -rf getdns/build && mkdir -p getdns/build
+ 	cd getdns/build && \
+ 	$(call CMAKE_CrossOptions, crosscompiled.cmake) && \
+-	cmake -DCMAKE_TOOLCHAIN_FILE=crosscompiled.cmake \
++	$(CMAKE) -DCMAKE_TOOLCHAIN_FILE=crosscompiled.cmake \
+ 		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
+ 		-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_SKIP_RPATH=TRUE \
+ 		-DCMAKE_C_FLAGS="-Os -DNDEBUG -ffunction-sections -fdata-sections $(EXTRACFLAGS)" \
+@@ -4851,6 +4859,6 @@ usbmode/stamp-h1:
+ 	@rm -f usbmode/crosscompiled.cmake
+ 	$(call CMAKE_CrossOptions, usbmode/crosscompiled.cmake)
+-	cd usbmode && cmake -DCMAKE_TOOLCHAIN_FILE=crosscompiled.cmake .
++	cd usbmode && $(CMAKE) -DCMAKE_TOOLCHAIN_FILE=crosscompiled.cmake .
+ 	touch $@
+ 
+ usbmode: json-c libubox usbmode/stamp-h1
+@@ -4895,7 +4903,7 @@ libusb-0.1.12-install:
+ 	$(STRIP) $(INSTALLDIR)/libusb-0.1.12/usr/lib/libusb.so
+ 
+ libuci/Makefile:
+-	cd libuci && cmake -G "Unix Makefiles"
++	cd libuci && $(CMAKE) -G "Unix Makefiles"
+ 
+ libuci: libuci/Makefile
+ 	$(MAKE) -C $@
+@@ -9381,7 +9389,7 @@ ifeq ($(MT798X),y)
+ LIBICAL_EXTRA_LINK = -lstdc++
+ endif
+ libical-2.0.0/Makefile: libical-2.0.0/CMakeLists.txt
+-	cd libical-2.0.0 && cmake -DCMAKE_INSTALL_PREFIX=/usr \
++	cd libical-2.0.0 && $(CMAKE) -DCMAKE_INSTALL_PREFIX=/usr \
+ 	-DCMAKE_BUILD_TYPE=Release \
+ 	-DCMAKE_EXE_LINKER_FLAGS="-L$(STAGEDIR)/usr/local/lib -ldl -lpthread $(LIBICAL_EXTRA_LINK)"
+ 
+@@ -11352,7 +11360,7 @@ libpng/build/Makefile:
+ 	@rm -rf libpng/build && mkdir -p libpng/build
+ 	cd libpng/build && \
+ 	$(call CMAKE_CrossOptions, crosscompiled.cmake) && \
+-	cmake -DCMAKE_TOOLCHAIN_FILE=crosscompiled.cmake \
++	$(CMAKE) -DCMAKE_TOOLCHAIN_FILE=crosscompiled.cmake \
+ 		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
+ 		-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_SKIP_RPATH=TRUE \
+ 		-DCMAKE_C_FLAGS="-Os -DNDEBUG -ffunction-sections -fdata-sections $(EXTRACFLAGS)" \
+@@ -11384,7 +11392,7 @@ qrencode/build/Makefile:
+ 	@rm -rf qrencode/build && mkdir -p qrencode/build
+ 	cd qrencode/build && \
+ 	$(call CMAKE_CrossOptions, crosscompiled.cmake) && \
+-	cmake -DCMAKE_TOOLCHAIN_FILE=crosscompiled.cmake \
++	$(CMAKE) -DCMAKE_TOOLCHAIN_FILE=crosscompiled.cmake \
+ 		-DCMAKE_INSTALL_PREFIX:PATH=/usr \
+ 		-DCMAKE_BUILD_TYPE=MinSizeRel -DCMAKE_SKIP_RPATH=TRUE \
+ 		-DCMAKE_C_FLAGS="-Os -DNDEBUG -ffunction-sections -fdata-sections $(EXTRACFLAGS)" \

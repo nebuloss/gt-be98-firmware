@@ -1,0 +1,31 @@
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -7459,7 +7459,7 @@ ifeq ($(BRCM_CHIP),$(filter $(BRCM_CHIP),6764 6766))
+ EBTABLES_HOST := --host=mips-linux-uclibc
+ EBTABLES_TARGET := --target=mips-linux-uclibc
+ EBTABLES_INCLUDE := -Iinclude -I$(HND_SRC)/kernel/bcmkernel/ -I$(HND_SRC)/kernel/linux-4.19/
+-EBTABLES_CC_PATH := /opt/toolchains/crosstools-arm_softfp-gcc-10.3-linux-4.19-glibc-2.32-binutils-2.36.1/usr/bin
++EBTABLES_CC_PATH := $(GTBE98_TC_ROOT)/crosstools-arm_softfp-gcc-10.3-linux-4.19-glibc-2.32-binutils-2.36.1/usr/bin
+ EBTABLES_CC := $(EBTABLES_CC_PATH)/arm-buildroot-linux-gnueabi-gcc
+ EBTABLES_CPP := $(EBTABLES_CC_PATH)/arm-buildroot-linux-gnueabi-cpp
+ EBTABLES_LD := $(EBTABLES_CC_PATH)/arm-buildroot-linux-gnueabi-ld
+@@ -7467,7 +7467,7 @@ else
+ EBTABLES_HOST := --host=mips-linux-uclibc
+ EBTABLES_TARGET := --target=mips-linux-uclibc
+ EBTABLES_INCLUDE := -Iinclude -I$(HND_SRC)/kernel/bcmkernel/ -I$(HND_SRC)/kernel/linux-4.19/
+-EBTABLES_CC_PATH := /opt/toolchains/crosstools-aarch64-gcc-10.3-linux-4.19-glibc-2.32-binutils-2.36.1/usr/bin
++EBTABLES_CC_PATH := $(GTBE98_TC_ROOT)/crosstools-aarch64-gcc-10.3-linux-4.19-glibc-2.32-binutils-2.36.1/usr/bin
+ EBTABLES_CC := $(EBTABLES_CC_PATH)/aarch64-buildroot-linux-gnu-gcc
+ EBTABLES_CPP := $(EBTABLES_CC_PATH)/aarch64-buildroot-linux-gnu-cpp
+ EBTABLES_LD := $(EBTABLES_CC_PATH)/aarch64-buildroot-linux-gnu-ld
+--- a/release/src-rt-5.04behnd.4916/bootloaders/build/configs/options_6813_nand.conf
++++ b/release/src-rt-5.04behnd.4916/bootloaders/build/configs/options_6813_nand.conf
+@@ -5,7 +5,7 @@ STANDALONE_TYPE = dpfe
+ ARCH = aarch64
+ SEC_ARCH = GEN3
+ 
+-UBOOT_CROSS_COMPILE = /opt/toolchains/crosstools-aarch64-gcc-10.3-linux-4.19-glibc-2.32-binutils-2.36.1/usr/bin/aarch64-linux-
++UBOOT_CROSS_COMPILE = $(GTBE98_TC_ROOT)/crosstools-aarch64-gcc-10.3-linux-4.19-glibc-2.32-binutils-2.36.1/usr/bin/aarch64-linux-
+ 
+ bcm_uboot_envsize = 16384
+ bcm_uboot_env = env_NAND_2M_GT-BE98.conf

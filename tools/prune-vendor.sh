@@ -8,7 +8,7 @@ KEEP="src-rt-5.04behnd.4916"
 RELEASE="${VENDOR}/release"
 
 [[ -d "${RELEASE}" ]] || {
-    echo "Missing ${RELEASE} — run ./setup.sh first" >&2
+    echo "Missing ${RELEASE} — run ./build.sh or ./tools/setup.sh" >&2
     exit 1
 }
 

@@ -1,4 +1,4 @@
-# Upstream Merlin tree (cloned by setup.sh, not versioned here)
+# Upstream Merlin tree (cloned by tools/setup.sh, not versioned here)
 vendor/
 
 # BCM cross-toolchains (cloned by tools/fetch-toolchain.sh)

@@ -1,0 +1,51 @@
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -6112,18 +6112,22 @@ strace-4.8-install:
+ 	install -D strace-4.8/strace $(INSTALLDIR)/strace-4.8/usr/sbin/strace
+ 	$(STRIP) $(INSTALLDIR)/strace-4.8/usr/sbin/strace
+ 
+-lldpd-0.9.8: $(if $(RTCONFIG_AMAS),json-c libevent-2.0.21) jansson-2.7 lldpd-0.9.8/Makefile
++lldpd-0.9.8: $(if $(RTCONFIG_AMAS),json-c libevent-2.0.21) jansson-2.7 libxml2 lldpd-0.9.8/Makefile
+ 	$(MAKE) -C $@
+ 
+ lldpd-0.9.8/Makefile:
+ 	cd lldpd-0.9.8 && autoreconf -i -f && \
+ 	$(CONFIGURE) --prefix= --bindir=/usr/sbin --libdir=/usr/lib \
+ 	$(if $(RTCONFIG_QCA),--disable-hardening,) \
+-	CFLAGS="-g -O2 -I$(STAGEDIR)/usr/include" \
+-	LDFLAGS="-L$(TOP)/lldpd-0.9.8/lib -lm -L$(STAGEDIR)/usr/lib -ljansson $(if $(RTCONFIG_AMAS),-L$(TOP)/json-c/.libs,) -ldl" \
++	CFLAGS="-g -O2 -I$(STAGEDIR)/usr/include -I$(STAGEDIR)/usr/include/libxml2" \
++	LDFLAGS="-Wl,-rpath-link=$(STAGEDIR)/usr/lib -L$(STAGEDIR)/usr/lib -L$(TOP)/lldpd-0.9.8/lib -lm -L$(TOP)/jansson-2.7/src/.libs -ljansson $(if $(RTCONFIG_AMAS),-L$(TOP)/json-c/.libs,) -ldl" \
++	XML2_CFLAGS="-I$(STAGEDIR)/usr/include/libxml2" \
++	XML2_LIBS="-Wl,-rpath-link=$(STAGEDIR)/usr/lib $(STAGEDIR)/usr/lib/libxml2.so" \
+ 	--with-privsep-user=nobody --with-privsep-group=root --with-privsep-path=/var/run/lldpd \
+ 	$(if $(filter y,$(HND_ROUTER)),,--enable-oldies) \
+ 	$(if $(RTCONFIG_AMAS),--with-json=yes,)
++	@find lldpd-0.9.8 -name Makefile -exec sed -i \
++		's|-lxml2 |'"$(STAGEDIR)"'/usr/lib/libxml2.so |g' {} +
+ 
+ lldpd-0.9.8-install: lldpd-0.9.8
+ 	install -D lldpd-0.9.8/src/client/.libs/lldpcli $(INSTALLDIR)/lldpd-0.9.8/usr/sbin/lldpcli
+@@ -6140,15 +6146,19 @@ lldpd-0.9.8-clean:
+ 	[ ! -f lldpd-0.9.8/libevent/Makefile ] || $(MAKE) -C lldpd-0.9.8/libevent clean
+ 	@rm -f lldpd-0.9.8/libevent/Makefile
+ 
+-lldpd-1.0.11: $(if $(RTCONFIG_AMAS),json-c libevent-2.0.21) jansson-2.7 lldpd-1.0.11/Makefile
++lldpd-1.0.11: $(if $(RTCONFIG_AMAS),json-c libevent-2.0.21) jansson-2.7 libxml2 lldpd-1.0.11/Makefile
+ 	$(MAKE) -C $@
+ 
+ lldpd-1.0.11/Makefile:
+ 	cd lldpd-1.0.11 && autoreconf -i -f && \
+ 	$(CONFIGURE) --prefix= --bindir=/usr/sbin --libdir=/usr/lib \
+ 	$(if $(RTCONFIG_QCA),--disable-hardening,) \
+-	CFLAGS="-g -O2 -I$(STAGEDIR)/usr/include" \
+-	LDFLAGS="-L$(TOP)/lldpd-1.0.11/lib -lm -L$(STAGEDIR)/usr/lib -ljansson $(if $(RTCONFIG_AMAS),-L$(TOP)/json-c/.libs,) -ldl" \
++	CFLAGS="-g -O2 -I$(STAGEDIR)/usr/include -I$(STAGEDIR)/usr/include/libxml2" \
++	LDFLAGS="-Wl,-rpath-link=$(STAGEDIR)/usr/lib -L$(STAGEDIR)/usr/lib -L$(TOP)/lldpd-1.0.11/lib -lm -L$(TOP)/jansson-2.7/src/.libs -ljansson $(if $(RTCONFIG_AMAS),-L$(TOP)/json-c/.libs,) -ldl" \
++	XML2_CFLAGS="-I$(STAGEDIR)/usr/include/libxml2" \
++	XML2_LIBS="-Wl,-rpath-link=$(STAGEDIR)/usr/lib $(STAGEDIR)/usr/lib/libxml2.so" \
+ 	--with-privsep-user=nobody --with-privsep-group=root --with-privsep-path=/var/run/lldpd \
+ 	$(if $(filter y,$(HND_ROUTER)),,--enable-oldies) \
+ 	$(if $(RTCONFIG_AMAS),--with-json=yes,)
++	@find lldpd-1.0.11 -name Makefile -exec sed -i \
++		's|-lxml2 |'"$(STAGEDIR)"'/usr/lib/libxml2.so |g' {} +

@@ -1,0 +1,15 @@
+diff --git a/release/src/router/Makefile b/release/src/router/Makefile
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -345,7 +345,11 @@ endif
+ ifeq ($(HND_ROUTER),y)
+ export EXTRA_NV_LDFLAGS := -L$(TOP_PLATFORM)/wlcsm -lwlcsm
+ export EXTRALDFLAGS = -lgcc_s
++ifneq ($(GTBE98_TC_ROOT),)
++# Native gt-be98-firmware: crosstool lib/ breaks host gcc (cc1: mpfr_asinpi).
++else
+ export LD_LIBRARY_PATH := $(TOOLCHAIN)/lib
++endif
+ export BASEDIR := $(SRCBASE)/../
+ else
+ include $(SRCBASE)/makefiles/WLAN_Common.mk

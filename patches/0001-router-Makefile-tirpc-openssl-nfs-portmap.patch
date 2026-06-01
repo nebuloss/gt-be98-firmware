@@ -1,5 +1,4 @@
 diff --git a/release/src/router/Makefile b/release/src/router/Makefile
-index 29f7fb7259..f5b269a84d 100644
 --- a/release/src/router/Makefile
 +++ b/release/src/router/Makefile
 @@ -3384,10 +3384,11 @@ ifeq ($(HND_ROUTER),y)
@@ -15,13 +14,15 @@ index 29f7fb7259..f5b269a84d 100644
  endef
  else
  define makeBusybox
-@@ -3829,6 +3830,9 @@ endif
+@@ -3829,6 +3829,11 @@ openssl-1.1-stage:
  openssl-1.1-stage:
  ifeq ($(RTCONFIG_OPENSSL11),y)
  	$(MAKE) -C openssl-1.1 install_sw DESTDIR=$(STAGEDIR)
 +	@mkdir -p $(STAGEDIR)/usr/lib $(STAGEDIR)/usr/include
-+	@cp -af $(STAGEDIR)/usr/local/lib/libssl* $(STAGEDIR)/usr/local/lib/libcrypto* $(STAGEDIR)/usr/lib/
-+	@cp -af $(STAGEDIR)/usr/local/include/openssl $(STAGEDIR)/usr/include/
++	@if test -d "$(STAGEDIR)/usr/local/lib"; then \
++		cp -af $(STAGEDIR)/usr/local/lib/libssl* $(STAGEDIR)/usr/local/lib/libcrypto* $(STAGEDIR)/usr/lib/ 2>/dev/null || true; \
++		cp -af $(STAGEDIR)/usr/local/include/openssl $(STAGEDIR)/usr/include/ 2>/dev/null || true; \
++	fi
  else
  	@true
  endif

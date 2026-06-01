@@ -4,20 +4,20 @@
 
 | Commande | Effet |
 |----------|--------|
-| `./setup.sh` | Toolchain + vendor + prune + patches |
-| `./build.sh` | `make FORCE=1 gt-be98` (natif) |
+| `./build.sh` | Bootstrap si besoin, puis `make FORCE=1 gt-be98` (natif) |
 | `./build.sh clean` | Nettoie objets des paquets patchés, puis build |
+| `./tools/setup.sh` | Bootstrap manuel (toolchain + vendor + prune + patches) |
 
 ## Variables d’environnement optionnelles
 
 ### Upstream Merlin (`vendor/`)
 
 ```bash
-UPSTREAM_REF=<branch-or-commit> ./setup.sh
-UPSTREAM_URL=https://github.com/gnuton/asuswrt-merlin.ng.git ./setup.sh
+UPSTREAM_REF=<branch-or-commit> ./tools/setup.sh
+UPSTREAM_URL=https://github.com/gnuton/asuswrt-merlin.ng.git ./tools/setup.sh
 ```
 
-Après `setup.sh`, le fichier `UPSTREAM` contient :
+Après le bootstrap (`tools/setup.sh` ou premier `./build.sh`), le fichier `UPSTREAM` contient :
 
 ```
 url=...
@@ -77,7 +77,7 @@ En cas d’échec, chercher la **première** erreur `error:` dans le log (pas se
 
 ```bash
 rm -rf vendor toolchain
-TC_REF=<commit-toolchain> UPSTREAM_REF=<commit-merlin> ./setup.sh
+TC_REF=<commit-toolchain> UPSTREAM_REF=<commit-merlin> ./tools/setup.sh
 ./build.sh
 ```
 

@@ -8,4 +8,4 @@ read -r -p "Remove vendor/ and re-clone upstream? [y/N] " ans
 [[ "${ans,,}" == "y" ]] || exit 0
 
 rm -rf "${ROOT}/vendor"
-exec "${ROOT}/setup.sh"
+exec "${ROOT}/tools/setup.sh"

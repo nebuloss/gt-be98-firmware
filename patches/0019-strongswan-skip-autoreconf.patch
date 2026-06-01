@@ -1,0 +1,27 @@
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -8055,10 +8055,12 @@ usbclient-clean:
+ 	rm -rf usbclient/stamp-h1
+ 
+ ##strongswan/IPSEC
+-strongswan/configure:
+-	cd strongswan && autoreconf -i
++# Vendor ships configure; needs config.guess etc. in $srcdir (not in git snapshot).
++strongswan/configure.stamp:
++	@$(if $(GTBE98_ROOT),$(GTBE98_ROOT),$(abspath $(TOP)/../../gt-be98-firmware))/tools/strongswan-ensure-aux.sh strongswan
++	touch $@
+ 
+-strongswan/Makefile: strongswan/configure
++strongswan/Makefile: strongswan/configure.stamp
+ 	cd strongswan && \
+ 	ac_cv_prog_cc_c99=no $(CONFIGURE) CC=$(CC) \
+ 	--prefix=/usr/ --bindir=/usr/sbin --sysconfdir=/etc/ --localstatedir=/var/ --libexecdir=/usr/lib \
+@@ -8095,7 +8100,7 @@ strongswan-install: strongswan
+ 
+ strongswan-clean:
+ 	[ ! -f strongswan/Makefile ] || $(MAKE) -C strongswan distclean
+-	@rm -f strongswan/Makefile
++	@rm -f strongswan/Makefile strongswan/configure.stamp
+ 
+ sw-hw-auth:
+ 	cd sw-hw-auth && \

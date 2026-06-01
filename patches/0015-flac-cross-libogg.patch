@@ -1,0 +1,13 @@
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -6697,7 +6697,9 @@ flac/stamp-h1: libogg
+ 	LDFLAGS="-L$(TOP)/libogg/src/.libs -fPIC -ffunction-sections -fdata-sections -Wl,--gc-sections" \
+ 	$(CONFIGURE) --enable-shared --enable-static --prefix='' --disable-rpath \
+ 		--disable-doxygen-docs --disable-xmms-plugin --disable-cpplibs \
+-		--without-libiconv-prefix --disable-altivec --disable-3dnow --disable-sse
++		--without-libiconv-prefix --disable-altivec --disable-3dnow --disable-sse \
++		--with-ogg-includes="$(TOP)/libogg/include" \
++		--with-ogg-libraries="$(TOP)/libogg/src/.libs"
+ 	touch $@
+ 
+ flac: flac/stamp-h1 libogg

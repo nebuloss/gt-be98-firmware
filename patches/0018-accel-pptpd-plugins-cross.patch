@@ -1,0 +1,33 @@
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -5223,7 +5223,7 @@ vlan-install:
+ 	$(STRIP) $(INSTALLDIR)/vlan/usr/sbin/vconfig
+ 
+ accel-pptpd: kernel_header pppd accel-pptpd/pptpd-1.3.3/Makefile
+-	@$(MAKE) -C accel-pptpd server
++	@$(MAKE) -C accel-pptpd server CC="$(CC)" AR="$(AR)" RANLIB="$(RANLIB)" LD="$(LD)"
+ 
+ accel-pptpd/pptpd-1.3.3/Makefile:
+ 	( cd accel-pptpd/pptpd-1.3.3 && CFLAGS="$(CFLAGS) -g -O2 $(EXTRACFLAGS) -idirafter $(KDIR)/include" \
+--- a/release/src/router/accel-pptpd/Makefile
++++ b/release/src/router/accel-pptpd/Makefile
+@@ -17,7 +17,7 @@ plugin: pppd_plugin/Makefile
+ 
+ pptpd: pptpd-1.3.3/Makefile
+ 	echo Building pptpd
+-	(cd pptpd-1.3.3; make)
++	(cd pptpd-1.3.3; $(MAKE) CC="$(CC)" AR="$(AR)" RANLIB="$(RANLIB)" LD="$(LD)")
+ 
+ pppd_plugin/Makefile: pptpd-1.3.3/Makefile
+ 	(cd pppd_plugin; $(CONFIGURE) --prefix=/usr PPPDIR=$(TOP)/pppd)
+--- a/release/src/router/accel-pptpd/pptpd-1.3.3/plugins/Makefile
++++ b/release/src/router/accel-pptpd/pptpd-1.3.3/plugins/Makefile
+@@ -1,6 +1,6 @@
+-CC	= gcc
++# CC/LDFLAGS from parent make (cross); -std=gnu99: host gcc defaults to C23 (bool keyword)
+ COPTS	= -O2 -g
+-CFLAGS	= $(COPTS) -I.. -I../../include -fPIC
++CFLAGS	= $(COPTS) -std=gnu99 -I.. -I../../include -fPIC
+ LDFLAGS	= -shared
+ LDADD   = -lutil
+ INSTALL	= install -o root

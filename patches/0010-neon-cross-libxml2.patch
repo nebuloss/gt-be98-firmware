@@ -1,0 +1,26 @@
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -8070,15 +8070,18 @@ endif
+  #add install neon
+  neon/Makefile neon/config.h:
+ 	cd neon && \
+-	$(CONFIGURE) CC=$(CC) \
++	$(CONFIGURE) CC=$(CC) AR=$(AR) RANLIB=$(RANLIB) \
+ 		--prefix=/usr \
+ 		--bindir=/usr/sbin \
+ 		--libdir=/usr/lib \
+ 		--enable-shared --disable-static --disable-nls --with-zlib --with-ssl=openssl --with-libxml2 \
+ 		--with-libs=$(STAGEDIR)/usr \
+-		CFLAGS='-g -O2 -I$(STAGEDIR)/usr/include' \
+-		LDFLAGS='-L$(STAGEDIR)/usr/lib' \
+-		LIBS='-lxml2 -lssl -lcrypto -lpthread -ldl -lm' \
+-		XML2_CONFIG='$(STAGEDIR)/usr/bin/xml2-config --prefix=$(STAGEDIR)/usr'
++		CFLAGS='-g -O2 -I$(STAGEDIR)/usr/include -I$(STAGEDIR)/usr/include/libxml2' \
++		LDFLAGS='-L$(STAGEDIR)/usr/lib -Wl,-rpath-link=$(STAGEDIR)/usr/lib' \
++		LIBS='-Wl,-rpath-link=$(STAGEDIR)/usr/lib $(STAGEDIR)/usr/lib/libxml2.so $(STAGEDIR)/usr/lib/libssl.so $(STAGEDIR)/usr/lib/libcrypto.so -lm' \
++		XML2_CONFIG='$(STAGEDIR)/usr/bin/xml2-config --prefix=$(STAGEDIR)/usr --exec-prefix=$(STAGEDIR)/usr'
++	@sed -i 's|-lxml2 |$(STAGEDIR)/usr/lib/libxml2.so |g' neon/src/Makefile
++	@sed -i 's|-lssl |$(STAGEDIR)/usr/lib/libssl.so |g' neon/src/Makefile
++	@sed -i 's|-lcrypto |$(STAGEDIR)/usr/lib/libcrypto.so |g' neon/src/Makefile
+ 	cp -f neon/config.h neon/src/config.h
+ 	touch $@

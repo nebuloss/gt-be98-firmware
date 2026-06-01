@@ -31,9 +31,14 @@ Pour flasher :
 
 ```bash
 ./build.sh
-# exit code 0
+# exit code 0 — inclut tools/verify-artifact.sh en fin de build
 ls -lh vendor/asuswrt-merlin.ng/release/src-rt-5.04behnd.4916/targets/96813GW/GT-BE98_*.pkgtb
+./tools/verify-artifact.sh   # optionnel, même contrôles
 ```
+
+`verify-artifact.sh` valide que l’image de mise à jour contient **noyau + DTB GT-BE98 + rootfs squashfs complet** (pas seulement la présence du fichier `.pkgtb`). Cela ne remplace pas un flash test sur matériel : le bootstrap/CFE et le NVRAM en flash ne sont pas re-flashés par le `.pkgtb` standard.
+
+Flasher de préférence les images préfixées **`GT-BE98_`**, pas les variantes génériques `bcm96813GW_*` (autres profils stockage / capacité).
 
 ## Attention
 

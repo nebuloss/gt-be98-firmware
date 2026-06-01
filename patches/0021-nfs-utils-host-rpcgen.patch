@@ -1,0 +1,108 @@
+diff --git a/release/src/router/Makefile b/release/src/router/Makefile
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -9612,7 +9612,7 @@ ipset-6-clean:
+ 
+ nfs-utils/stamp-h1:
+ 	cd nfs-utils && CPPFLAGS="$(EXTRACFLAGS) -Os" knfsd_cv_bsd_signals=no \
+-	CC_FOR_BUILD=$(CC) $(CONFIGURE) --enable-nfsv3 --disable-nfsv4 --disable-ipv6 \
++	$(CONFIGURE) --enable-nfsv3 --disable-nfsv4 --disable-ipv6 \
+ 	--disable-uuid --disable-gss --disable-mount --without-tcp-wrappers
+ 	@touch $@
+ 
+@@ -9634,13 +9634,27 @@ nfs-utils-install:
+ 
+ nfs-utils-1.3.4/stamp-h1:
+ 	cd nfs-utils-1.3.4 && CPPFLAGS="$(EXTRACFLAGS) -Os$(if $(HND_ROUTER), -I$(TOOL_SYS_INCLUDE)/tirpc,)" knfsd_cv_bsd_signals=no \
+-	CC_FOR_BUILD=$(CC) $(CONFIGURE) --enable-nfsv3 --disable-nfsv4 --disable-nfsv41 \
++	$(CONFIGURE) --enable-nfsv3 --disable-nfsv4 --disable-nfsv41 \
+ 	--disable-ipv6 $(if $(HND_ROUTER),--with-tirpcinclude=$(TOOL_SYS_INCLUDE)/tirpc,--disable-tirpc) \
+ 	--disable-nfsdcltrack --disable-uuid --disable-gss --disable-mount --without-tcp-wrappers
+ 	@touch $@
+ 
++define GTBE98_BUILD_NFS_HOST_RPCGEN
++	@dir=nfs-utils-1.3.4/tools/rpcgen; \
++	$(MAKE) -C $$dir clean; \
++	$(MAKE) -C $$dir CC=gcc CFLAGS=-std=gnu89 \
++		CPPFLAGS="-I/usr/include/tirpc -D_GNU_SOURCE" AM_CPPFLAGS=-I/usr/include/tirpc \
++		rpcgen-rpc_clntout.o rpcgen-rpc_cout.o rpcgen-rpc_hout.o rpcgen-rpc_main.o \
++		rpcgen-rpc_parse.o rpcgen-rpc_scan.o rpcgen-rpc_svcout.o rpcgen-rpc_tblout.o \
++		rpcgen-rpc_util.o rpcgen-rpc_sample.o; \
++	gcc -std=gnu89 -o $$dir/rpcgen $$dir/rpcgen-*.o -ltirpc
++endef
++
+ nfs-utils-1.3.4: nfs-utils-1.3.4/stamp-h1
++ifneq ($(GTBE98_TC_ROOT),)
++	$(GTBE98_BUILD_NFS_HOST_RPCGEN)
++endif
+ 	$(MAKE) -C $@ $(PARALLEL_BUILD)
+ 
+ nfs-utils-1.3.4-clean:
+ 
+diff --git a/release/src/router/nfs-utils-1.3.4/support/export/Makefile.am b/release/src/router/nfs-utils-1.3.4/support/export/Makefile.am
+--- a/release/src/router/nfs-utils-1.3.4/support/export/Makefile.am
++++ b/release/src/router/nfs-utils-1.3.4/support/export/Makefile.am
+@@ -24,8 +24,12 @@ dist-hook:
+ if CONFIG_RPCGEN
+ RPCGEN		= $(top_builddir)/tools/rpcgen/rpcgen
+ $(RPCGEN):
+-	make -C $(top_srcdir)/tools/rpcgen all
++	@if test "$(host)" != "$(build)"; then \
++		test -x $(top_builddir)/tools/rpcgen/rpcgen; \
++	else \
++		$(MAKE) -C $(top_srcdir)/tools/rpcgen all; \
++	fi
+ else
+ RPCGEN = @RPCGEN_PATH@
+ endif
+ 
+diff --git a/release/src/router/nfs-utils-1.3.4/support/nsm/Makefile.am b/release/src/router/nfs-utils-1.3.4/support/nsm/Makefile.am
+--- a/release/src/router/nfs-utils-1.3.4/support/nsm/Makefile.am
++++ b/release/src/router/nfs-utils-1.3.4/support/nsm/Makefile.am
+@@ -17,8 +17,12 @@ dist-hook:
+ if CONFIG_RPCGEN
+ RPCGEN	= $(top_builddir)/tools/rpcgen/rpcgen
+ $(RPCGEN):
+-	make -C ../../tools/rpcgen all
++	@if test "$(host)" != "$(build)"; then \
++		test -x $(top_builddir)/tools/rpcgen/rpcgen; \
++	else \
++		$(MAKE) -C ../../tools/rpcgen all; \
++	fi
+ else
+ RPCGEN = @RPCGEN_PATH@
+ endif
+ 
+diff --git a/release/src/router/nfs-utils-1.3.4/utils/statd/Makefile.am b/release/src/router/nfs-utils-1.3.4/utils/statd/Makefile.am
+--- a/release/src/router/nfs-utils-1.3.4/utils/statd/Makefile.am
++++ b/release/src/router/nfs-utils-1.3.4/utils/statd/Makefile.am
+@@ -25,8 +25,12 @@ endif
+ if CONFIG_RPCGEN
+ RPCGEN	= $(top_builddir)/tools/rpcgen/rpcgen
+ $(RPCGEN):
+-	make -C ../../tools/rpcgen all
++	@if test "$(host)" != "$(build)"; then \
++		test -x $(top_builddir)/tools/rpcgen/rpcgen; \
++	else \
++		$(MAKE) -C ../../tools/rpcgen all; \
++	fi
+ else
+ RPCGEN = @RPCGEN_PATH@
+ endif
+ 
+diff --git a/release/src/router/nfs-utils-1.3.4/tests/nsm_client/Makefile.am b/release/src/router/nfs-utils-1.3.4/tests/nsm_client/Makefile.am
+--- a/release/src/router/nfs-utils-1.3.4/tests/nsm_client/Makefile.am
++++ b/release/src/router/nfs-utils-1.3.4/tests/nsm_client/Makefile.am
+@@ -19,7 +19,11 @@ endif
+ if CONFIG_RPCGEN
+ RPCGEN	= $(top_builddir)/tools/rpcgen/rpcgen
+ $(RPCGEN):
+-	make -C ../../tools/rpcgen all
++	@if test "$(host)" != "$(build)"; then \
++		test -x $(top_builddir)/tools/rpcgen/rpcgen; \
++	else \
++		$(MAKE) -C ../../tools/rpcgen all; \
++	fi
+ else
+ RPCGEN = @RPCGEN_PATH@
+ endif

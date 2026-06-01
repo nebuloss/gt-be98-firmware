@@ -21,13 +21,15 @@ sudo pacman -S --needed \
 
 Détails et cas particuliers : [host-deps-arch.md](host-deps-arch.md).
 
-## 3. Setup (une fois, ou après `rm -rf vendor toolchain`)
+## 3. Build (bootstrap automatique la première fois)
 
 ```bash
-./setup.sh
+./build.sh
 ```
 
-Étapes exécutées automatiquement :
+Si `vendor/` ou `toolchain/` manquent, `./build.sh` lance d’abord `tools/setup.sh` :
+
+Étapes du bootstrap :
 
 1. Clone **RMerl/am-toolchains** dans `toolchain/am-toolchains/` (~quelques Go)
 2. Clone **gnuton/asuswrt-merlin.ng** dans `vendor/asuswrt-merlin.ng/` (~plusieurs Go)
@@ -45,17 +47,13 @@ arm-buildroot-linux-gnueabi-gcc --version
 # attendu : gcc 10.3.x (Buildroot), arm-buildroot-linux-gnueabi
 ```
 
-## 4. Compiler
+La même commande enchaîne ensuite la compilation Merlin.
 
-```bash
-./build.sh
-```
-
-- Premier build : **long** (souvent 1–3 h selon la machine)
+- Premier build : **long** (souvent 1–3 h selon la machine, bootstrap inclus)
 - Builds suivants : incrémentaux, plus rapides
 - Logs : `logs/build_YYYYMMDD_HHMMSS.log`
 
-## 5. Récupérer l’image
+## 4. Récupérer l’image
 
 ```bash
 ls -lh vendor/asuswrt-merlin.ng/release/src-rt-5.04behnd.4916/targets/96813GW/GT-BE98_*.pkgtb
@@ -85,5 +83,5 @@ Pour tout réinitialiser :
 ```bash
 ./tools/clean-vendor.sh   # supprime vendor/ et relance setup (garde toolchain)
 # ou
-rm -rf vendor toolchain && ./setup.sh
+rm -rf vendor toolchain && ./build.sh
 ```

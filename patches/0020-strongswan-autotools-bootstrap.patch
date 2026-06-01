@@ -1,0 +1,10 @@
+--- a/release/src/router/strongswan/configure.ac
++++ b/release/src/router/strongswan/configure.ac
+@@ -376,7 +376,6 @@ AC_SUBST(PLUGIN_CFLAGS)
+ AC_PROG_CC
+ AM_PROG_CC_C_O
+ 
+-AC_LIB_PREFIX
+ AC_C_BIGENDIAN
+ 
+ # =========================

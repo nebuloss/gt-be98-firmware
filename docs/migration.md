@@ -21,7 +21,7 @@ Après avoir validé que le nouveau dépôt build correctement :
 |-------------------|---------------------|
 | Patches dans `asuswrt-merlin.ng/patches/gt-be98-hnd-glibc32/` | Déjà dans `gt-be98-firmware/patches/` |
 | `build.sh` à la racine Merlin | `gt-be98-firmware/build.sh` (natif, pas Docker) |
-| Build tree entier versionné par erreur | **Ne pas** committer — `vendor/` est recréé par `setup.sh` |
+| Build tree entier versionné par erreur | **Ne pas** committer — `vendor/` est recréé par `tools/setup.sh` / `./build.sh` |
 | Toolchain Docker `/opt/toolchains` | `toolchain/am-toolchains/` via `fetch-toolchain.sh` |
 
 ## Repartir de zéro (recommandé)
@@ -29,7 +29,7 @@ Après avoir validé que le nouveau dépôt build correctement :
 ```bash
 cd /chemin/vers/gt-be98-firmware
 rm -rf vendor toolchain logs
-./setup.sh
+./build.sh
 ./build.sh
 ```
 
@@ -67,7 +67,7 @@ Ne poussez pas l’ancien monorepo Merlin sauf si vous maintenez volontairement 
 
 ## Checklist avant de « dégager » l’ancien clone
 
-- [ ] `./setup.sh` OK sur une machine fraîche (ou après `rm -rf vendor toolchain`)
+- [ ] `./build.sh` OK sur une machine fraîche (bootstrap inclus ; ou `rm -rf vendor toolchain` puis rebuild)
 - [ ] `./build.sh` exit 0
 - [ ] `GT-BE98_*.pkgtb` présent dans `targets/96813GW/`
 - [ ] Remote Git configuré sur `gt-be98-firmware` uniquement

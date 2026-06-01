@@ -1,0 +1,21 @@
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -7895,7 +7909,17 @@ pcre-8.31: pcre-8.31/stamp-h1
+ 	$(MAKE) -C pcre-8.31
+ 	@[ -f pcre-8.31/.libs/libpcre.so.1.0.1 ] || \
+ 		(echo "pcre-8.31: libpcre.so.1.0.1 not built" >&2; exit 1)
+-	$(MAKE) $@-stage
++	$(MAKE) pcre-8.31-stage
++
++# Avoid libtool install relink pulling host /usr/lib/libc (cross gt-be98).
++pcre-8.31-stage:
++	@mkdir -p $(STAGEDIR)/usr/lib
++	install -D pcre-8.31/.libs/libpcre.so.1.0.1 $(STAGEDIR)/usr/lib/libpcre.so.1.0.1
++	cd $(STAGEDIR)/usr/lib && ln -sf libpcre.so.1.0.1 libpcre.so.1 && ln -sf libpcre.so.1.0.1 libpcre.so
++	install -D pcre-8.31/.libs/libpcreposix.so.0.0.1 $(STAGEDIR)/usr/lib/libpcreposix.so.0.0.1
++	cd $(STAGEDIR)/usr/lib && ln -sf libpcreposix.so.0.0.1 libpcreposix.so.0 && ln -sf libpcreposix.so.0.0.1 libpcreposix.so
++	install -D pcre-8.31/.libs/libpcrecpp.so.0.0.0 $(STAGEDIR)/usr/lib/libpcrecpp.so.0.0.0
++	cd $(STAGEDIR)/usr/lib && ln -sf libpcrecpp.so.0.0.0 libpcrecpp.so.0 && ln -sf libpcrecpp.so.0.0.0 libpcrecpp.so
+ 
+ pcre-8.31-install: pcre-8.31
+ 	@$(SEP)

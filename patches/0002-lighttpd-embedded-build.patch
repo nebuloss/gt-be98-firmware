@@ -17,11 +17,12 @@ diff --git a/release/src/router/lighttpd-1.4.39/src/server.c b/release/src/route
 index f95f2b3d9e..7f24329a05 100755
 --- a/release/src/router/lighttpd-1.4.39/src/server.c
 +++ b/release/src/router/lighttpd-1.4.39/src/server.c
-@@ -232,6 +232,34 @@ static void signal_handler(int sig) {
+@@ -232,6 +232,35 @@ static void signal_handler(int sig) {
  }
  #endif
  
-+#if EMBEDDED_EANBLE
++#if EMBEDDED_EANBLE && !defined(GTBE98_LIGHTTPD_EMBEDDED_SIG)
++#define GTBE98_LIGHTTPD_EMBEDDED_SIG 1
 +/* ASUS embedded build uses -DEMBEDDED_EANBLE without autoconf HAVE_SIGACTION */
 +static void embedded_signal_handler(int sig) {
 +	switch (sig) {
@@ -52,7 +53,7 @@ index f95f2b3d9e..7f24329a05 100755
  #ifdef HAVE_FORK
  static void daemonize(void) {
  #ifdef SIGTTOU
-@@ -1543,19 +1571,28 @@ int main (int argc, char **argv) {
+@@ -1543,19 +1572,28 @@ int main (int argc, char **argv) {
  	sigaddset(&sigs_to_catch, SIGUSR2);   
  	
  	sigprocmask(SIG_UNBLOCK, &sigs_to_catch, NULL);

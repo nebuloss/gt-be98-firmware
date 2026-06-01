@@ -1,0 +1,55 @@
+diff --git a/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Makefile b/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Makefile
+--- a/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Makefile
++++ b/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Makefile
+@@ -4,12 +4,21 @@
+ 
+ HEADERS = cJSON.h
+ 
++# CMake 4.x rejects cmake_minimum_required(VERSION 2.8.5) without this flag.
++CMAKE ?= cmake
++CMAKE_EXTRA := -DCMAKE_POLICY_VERSION_MINIMUM=3.5
++
+ check_cmake: $(SRC).tar.gz
++	@if [ -e $(LIB_DIR)/CMakeCache.txt ] && ! grep -q 'CMAKE_POLICY_VERSION_MINIMUM:.*=3.5' $(LIB_DIR)/CMakeCache.txt 2>/dev/null; then \
++	    echo "Removing stale $(LIB_DIR) (CMake 4.x needs CMAKE_POLICY_VERSION_MINIMUM)"; \
++	    rm -rf $(LIB_DIR); \
++	fi
+ 	@if [ ! -e $(LIB_DIR)/Makefile ]; then \
+ 	    echo "Untarring original $(SRC) source and cmake"; \
+ 		mkdir -p $(LIB_DIR); \
+ 		( cd $(LIB_DIR); tar --strip-components=1 -xzf ../$(SRC).tar.gz; \
+-		cmake \
++		$(CMAKE) $(CMAKE_EXTRA) \
++		-DENABLE_CJSON_TEST=Off \
+ 		-DCMAKE_RANLIB=$(RANLIB) \
+ 		-DCMAKE_STRIP=$(STRIP) \
+ 		-DCMAKE_NM:FILEPATH=$(NM) \
+@@ -25,10 +34,8 @@
+ 	fi
+ 
+ install: check_cmake
+-	if [ ! -d $(LIB_DIR)/.libs ]; then \
+-		$(MAKE) -C $(LIB_DIR)/lib; \
+-	    $(MAKE) -C $(LIB_DIR) install; \
+-	fi
++	$(MAKE) -C $(LIB_DIR) cjson
++	$(MAKE) -C $(LIB_DIR) install
+ 
+ clean:
+ 	rm -f $(LIB_INSTALL_DIR)/$(LIB).so*
+diff --git a/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Bcmbuild.mk b/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Bcmbuild.mk
+--- a/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Bcmbuild.mk
++++ b/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Bcmbuild.mk
+@@ -36,9 +36,16 @@
+ 
+ ifneq ($(strip $(BUILD_LIBCJSON)),)
+ conditional_build:
++ifneq ($(GTBE98_ROOT),)
++	@$(GTBE98_ROOT)/tools/ensure-cjson-makefile.sh
++endif
+ 	$(MAKE) -f Makefile install
+ 	mkdir -p $(FINAL_LIB_INSTALL_DIR)
++	@test -n "$$(ls $(LIB_INSTALL_DIR)/$(LIB).so* 2>/dev/null)" || (echo "Bcmbuild.mk: $(LIB) not built in $(LIB_INSTALL_DIR)" >&2; exit 1)
+ 	chmod 755 $(LIB_INSTALL_DIR)/$(LIB).so
+ 	cp -d $(LIB_INSTALL_DIR)/$(LIB).so* $(FINAL_LIB_INSTALL_DIR)
+ else
