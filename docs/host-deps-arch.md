@@ -8,7 +8,7 @@ Build **100 % natif** : pas de Docker. La cross-compilation ARM vient de `toolch
 sudo pacman -S --needed \
     base-devel git perl python flex bison bc rsync patch unzip \
     texinfo gettext openssl ncurses autoconf automake libtool autoconf-archive \
-    pkgconf gperf cpio xz zlib gawk subversion intltool
+    pkgconf gperf gengetopt cpio xz zlib gawk subversion intltool
 
 # pkgconf → commande pkg-config (vérifiée par ./build.sh)
 command -v pkg-config autoreconf

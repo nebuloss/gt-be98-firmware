@@ -71,6 +71,12 @@ gtbe98_patch_semantics_ok() {
                 && grep -q 'rpcgen-rpc_clntout.o' "$mk" 2>/dev/null \
                 && grep -q '\-C \$@/support' "$mk" 2>/dev/null
             ;;
+        0023-coovachilli-gengetopt-optional.patch)
+            grep -q 'command -v gengetopt' \
+                release/src/router/coovachilli/src/Makefile.am 2>/dev/null \
+                && grep -q 'command -v gengetopt' \
+                release/src/router/coovachilli/src/Makefile 2>/dev/null
+            ;;
         0022-cjson-cmake-libcreduction.patch)
             grep -q 'CMAKE_EXTRA := -DCMAKE_POLICY_VERSION_MINIMUM=3.5' \
                 "release/${GTBE98_SDK}/${GTBE98_SYSDEP}/cjson/Makefile" 2>/dev/null \

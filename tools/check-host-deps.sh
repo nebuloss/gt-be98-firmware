@@ -11,7 +11,7 @@ QUICK=0
 [[ "${1:-}" == "--quick" ]] && QUICK=1
 
 FAIL=0
-ARCH_HINT='sudo pacman -S --needed base-devel git perl python flex bison bc rsync patch unzip texinfo gettext openssl ncurses autoconf automake libtool autoconf-archive pkgconf gperf cpio xz zlib gawk subversion intltool cmake lib32-glibc lib32-gcc-libs lib32-zlib'
+ARCH_HINT='sudo pacman -S --needed base-devel git perl python flex bison bc rsync patch unzip texinfo gettext openssl ncurses autoconf automake libtool autoconf-archive pkgconf gperf cpio xz zlib gawk subversion intltool cmake gengetopt lib32-glibc lib32-gcc-libs lib32-zlib'
 
 fail() { echo "check-host-deps: FAIL: $*" >&2; FAIL=1; }
 ok() { echo "check-host-deps: OK: $*"; }
@@ -39,7 +39,7 @@ for cmd in \
     autoconf automake libtool autoreconf \
     pkg-config \
     cmake python3 \
-    gperf cpio xz gzip \
+    gperf gengetopt cpio xz gzip \
     msgfmt msgmerge xgettext \
     openssl
 do

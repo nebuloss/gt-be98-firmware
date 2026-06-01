@@ -1,0 +1,46 @@
+diff --git a/release/src/router/coovachilli/src/Makefile.am b/release/src/router/coovachilli/src/Makefile.am
+--- a/release/src/router/coovachilli/src/Makefile.am
++++ b/release/src/router/coovachilli/src/Makefile.am
+@@ -190,9 +190,16 @@ install-exec-hook:
+ main-opt.c: cmdline.c cmdline.h
+ 
+ cmdline.c cmdline.h: cmdline.ggo cmdline.patch
+-	cat $(CMDLINE) | gengetopt -C 
+-	cp cmdline.c cmdline.c.orig
+-	patch -p0 < cmdline.patch
++	@if command -v gengetopt >/dev/null 2>&1; then \
++		cat $(CMDLINE) | gengetopt -C; \
++		cp cmdline.c cmdline.c.orig; \
++		patch -p0 < cmdline.patch; \
++	elif test -f cmdline.c && test -f cmdline.h; then \
++		: ; \
++	else \
++		echo "gengetopt required (install: pacman -S gengetopt)" >&2; \
++		exit 1; \
++	fi
+ 
+ cmdline.mini.gen: cmdline.ggo 
+ 	sh cmdline.mini.sh > cmdline.mini.gen
+diff --git a/release/src/router/coovachilli/src/Makefile b/release/src/router/coovachilli/src/Makefile
+--- a/release/src/router/coovachilli/src/Makefile
++++ b/release/src/router/coovachilli/src/Makefile
+@@ -1371,9 +1371,16 @@ install-exec-hook:
+ main-opt.c: cmdline.c cmdline.h
+ 
+ cmdline.c cmdline.h: cmdline.ggo cmdline.patch
+-	cat $(CMDLINE) | gengetopt -C 
+-	cp cmdline.c cmdline.c.orig
+-	patch -p0 < cmdline.patch
++	@if command -v gengetopt >/dev/null 2>&1; then \
++		cat $(CMDLINE) | gengetopt -C; \
++		cp cmdline.c cmdline.c.orig; \
++		patch -p0 < cmdline.patch; \
++	elif test -f cmdline.c && test -f cmdline.h; then \
++		: ; \
++	else \
++		echo "gengetopt required (install: pacman -S gengetopt)" >&2; \
++		exit 1; \
++	fi
+ 
+ cmdline.mini.gen: cmdline.ggo 
+ 	sh cmdline.mini.sh > cmdline.mini.gen
