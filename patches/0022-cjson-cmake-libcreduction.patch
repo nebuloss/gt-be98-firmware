@@ -1,6 +1,6 @@
-diff --git a/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Makefile b/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Makefile
---- a/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Makefile
-+++ b/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Makefile
+diff --git a/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Makefile b/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Makefile
+--- a/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Makefile
++++ b/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Makefile
 @@ -4,12 +4,21 @@
  
  HEADERS = cJSON.h
@@ -37,9 +37,9 @@ diff --git a/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Makefile b/releas
  
  clean:
  	rm -f $(LIB_INSTALL_DIR)/$(LIB).so*
-diff --git a/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Bcmbuild.mk b/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Bcmbuild.mk
---- a/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Bcmbuild.mk
-+++ b/release/src-rt-5.04behnd.4916/router-sysdep/cjson/Bcmbuild.mk
+diff --git a/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Bcmbuild.mk b/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Bcmbuild.mk
+--- a/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Bcmbuild.mk
++++ b/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Bcmbuild.mk
 @@ -36,9 +36,16 @@
  
  ifneq ($(strip $(BUILD_LIBCJSON)),)

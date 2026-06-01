@@ -34,10 +34,13 @@ diff --git a/release/src/router/Makefile b/release/src/router/Makefile
  nfs-utils-1.3.4: nfs-utils-1.3.4/stamp-h1
 +ifneq ($(GTBE98_TC_ROOT),)
 +	$(GTBE98_BUILD_NFS_HOST_RPCGEN)
++	$(MAKE) -C $@/support $(PARALLEL_BUILD)
++	$(MAKE) -C $@/utils $(PARALLEL_BUILD)
++else
++	$(MAKE) -C $@ $(PARALLEL_BUILD)
 +endif
- 	$(MAKE) -C $@ $(PARALLEL_BUILD)
- 
- nfs-utils-1.3.4-clean:
++
++ nfs-utils-1.3.4-clean:
  
 diff --git a/release/src/router/nfs-utils-1.3.4/support/export/Makefile.am b/release/src/router/nfs-utils-1.3.4/support/export/Makefile.am
 --- a/release/src/router/nfs-utils-1.3.4/support/export/Makefile.am

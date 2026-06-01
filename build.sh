@@ -13,6 +13,9 @@ SDK="src-rt-5.04behnd.4916"
 MODEL="gt-be98"
 CLEAN="${1:-}"
 LOG_DIR="${ROOT}/logs"
+BUILD_TMP_DIR="${LOG_DIR}/build-tmp"
+mkdir -p "$BUILD_TMP_DIR"
+export TMPDIR="$BUILD_TMP_DIR"
 TIMESTAMP="$(date +%Y%m%d_%H%M%S)"
 LOG_FILE="${LOG_DIR}/build_${TIMESTAMP}.log"
 IMAGE_DIR="${VENDOR}/release/${SDK}/targets/96813GW"
@@ -48,7 +51,7 @@ if ! "${ROOT}/tools/apply-patches.sh" 2>&1 | tee -a "$LOG_FILE"; then
     log "apply-patches.sh failed — see ${LOG_FILE}"
     exit 1
 fi
-CJSON_MK="${VENDOR}/release/${SDK}/router-sysdep/cjson/Makefile"
+CJSON_MK="${VENDOR}/release/${SDK}/router-sysdep.gt-be98/cjson/Makefile"
 grep -q 'CMAKE_EXTRA := -DCMAKE_POLICY_VERSION_MINIMUM=3.5' "$CJSON_MK" || {
     echo "cjson CMake fix missing in $CJSON_MK — run ./tools/apply-patches.sh" >&2
     exit 1
@@ -85,7 +88,7 @@ if [[ "$CLEAN" == "clean" ]]; then
     rm -f "${VENDOR}/release/src/router/portmap/portmap" \
           "${VENDOR}/release/src/router/portmap/"*.o \
           "${VENDOR}/release/src/router/portmap/.depend"
-    rm -rf "${VENDOR}/release/${SDK}/router-sysdep/cjson/cjson"
+    rm -rf "${VENDOR}/release/${SDK}/router-sysdep.gt-be98/cjson/cjson"
 fi
 
 START_TS=$(date +%s)
@@ -99,6 +102,7 @@ START_TS=$(date +%s)
         GTBE98_TC_ROOT="${GTBE98_TC_ROOT}" \
         GTBE98_ROOT="${GTBE98_ROOT}" \
         LD_LIBRARY_PATH= \
+        TMPDIR="${TMPDIR}" \
         "${MODEL}"
 ) 2>&1 | tee -a "$LOG_FILE"
 EXIT_CODE=${PIPESTATUS[0]}

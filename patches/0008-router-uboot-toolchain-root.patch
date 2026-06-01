@@ -1,3 +1,4 @@
+diff --git a/release/src/router/Makefile b/release/src/router/Makefile
 --- a/release/src/router/Makefile
 +++ b/release/src/router/Makefile
 @@ -7459,7 +7459,7 @@ ifeq ($(BRCM_CHIP),$(filter $(BRCM_CHIP),6764 6766))
@@ -18,8 +19,9 @@
  EBTABLES_CC := $(EBTABLES_CC_PATH)/aarch64-buildroot-linux-gnu-gcc
  EBTABLES_CPP := $(EBTABLES_CC_PATH)/aarch64-buildroot-linux-gnu-cpp
  EBTABLES_LD := $(EBTABLES_CC_PATH)/aarch64-buildroot-linux-gnu-ld
---- a/release/src-rt-5.04behnd.4916/bootloaders/build/configs/options_6813_nand.conf
-+++ b/release/src-rt-5.04behnd.4916/bootloaders/build/configs/options_6813_nand.conf
+diff --git a/release/src-rt-5.04behnd.4916/bootloaders/build/configs/options_6813_nand.conf.GT-BE98 b/release/src-rt-5.04behnd.4916/bootloaders/build/configs/options_6813_nand.conf.GT-BE98
+--- a/release/src-rt-5.04behnd.4916/bootloaders/build/configs/options_6813_nand.conf.GT-BE98
++++ b/release/src-rt-5.04behnd.4916/bootloaders/build/configs/options_6813_nand.conf.GT-BE98
 @@ -5,7 +5,7 @@ STANDALONE_TYPE = dpfe
  ARCH = aarch64
  SEC_ARCH = GEN3
