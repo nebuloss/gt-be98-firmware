@@ -37,19 +37,3 @@ diff --git a/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Makefile 
  
  clean:
  	rm -f $(LIB_INSTALL_DIR)/$(LIB).so*
-diff --git a/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Bcmbuild.mk b/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Bcmbuild.mk
---- a/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Bcmbuild.mk
-+++ b/release/src-rt-5.04behnd.4916/router-sysdep.gt-be98/cjson/Bcmbuild.mk
-@@ -36,9 +36,16 @@
- 
- ifneq ($(strip $(BUILD_LIBCJSON)),)
- conditional_build:
-+ifneq ($(GTBE98_ROOT),)
-+	@$(GTBE98_ROOT)/tools/ensure-cjson-makefile.sh
-+endif
- 	$(MAKE) -f Makefile install
- 	mkdir -p $(FINAL_LIB_INSTALL_DIR)
-+	@test -n "$$(ls $(LIB_INSTALL_DIR)/$(LIB).so* 2>/dev/null)" || (echo "Bcmbuild.mk: $(LIB) not built in $(LIB_INSTALL_DIR)" >&2; exit 1)
- 	chmod 755 $(LIB_INSTALL_DIR)/$(LIB).so
- 	cp -d $(LIB_INSTALL_DIR)/$(LIB).so* $(FINAL_LIB_INSTALL_DIR)
- else

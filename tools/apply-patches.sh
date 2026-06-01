@@ -78,7 +78,7 @@ gtbe98_patch_semantics_ok() {
                 "release/${GTBE98_SDK}/${GTBE98_SYSDEP}/cjson/Bcmbuild.mk" 2>/dev/null \
                 && grep -q '@test -n.*LIB_INSTALL_DIR.*LIB).so' \
                 "release/${GTBE98_SDK}/${GTBE98_SYSDEP}/cjson/Bcmbuild.mk" 2>/dev/null \
-                && grep -A2 '^cjson:' "$mk" 2>/dev/null | grep -q 'GTBE98_TC_ROOT'
+                && grep -A3 '^cjson:' "$mk" 2>/dev/null | grep -q 'GTBE98_TC_ROOT'
             ;;
         *)
             return 1

@@ -49,9 +49,9 @@ if [[ -f "$BCMBUILD" ]] && ! grep -q 'ensure-cjson-makefile.sh' "$BCMBUILD" 2>/d
     echo "ensure-cjson-makefile: patched Bcmbuild.mk"
 fi
 
-if [[ -f "$ROUTER_MK" ]] && ! grep -A2 '^cjson:$' "$ROUTER_MK" | grep -q 'GTBE98_TC_ROOT'; then
+if [[ -f "$ROUTER_MK" ]] && ! grep -A3 '^cjson:$' "$ROUTER_MK" | grep -q 'GTBE98_TC_ROOT'; then
     awk '
-        /^\tcjson:$/ { in_cjson=1 }
+        /^cjson:$/ { in_cjson=1 }
         in_cjson && /^\t-\$\(MAKE\) -C \$\(TOPX_DIR\) -f Bcmbuild\.mk$/ {
             print "ifneq ($(GTBE98_TC_ROOT),)"
             print "\t$(MAKE) -C $(TOPX_DIR) -f Bcmbuild.mk"
@@ -61,7 +61,7 @@ if [[ -f "$ROUTER_MK" ]] && ! grep -A2 '^cjson:$' "$ROUTER_MK" | grep -q 'GTBE98
             in_cjson=0
             next
         }
-        /^\tcjson-install:$/ { in_install=1 }
+        /^cjson-install:$/ { in_install=1 }
         in_install && /^\t-\$\(MAKE\) -C \$\(TOPX_DIR\) INSTALLDIR=\$\(INSTALLDIR\)\/cjson install$/ {
             print "ifneq ($(GTBE98_TC_ROOT),)"
             print "\t$(MAKE) -C $(TOPX_DIR) INSTALLDIR=$(INSTALLDIR)/cjson install"
