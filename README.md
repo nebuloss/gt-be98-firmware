@@ -24,14 +24,16 @@ Image produite :
 
 | Document | Contenu |
 |----------|---------|
+| [docs/architecture/README.md](docs/architecture/README.md) | **Audit système** — build, firmware, paquets, runtime OS |
 | [docs/getting-started.md](docs/getting-started.md) | Installation from scratch, espace disque, premier build |
 | [docs/build-guide.md](docs/build-guide.md) | `build.sh`, bootstrap `tools/setup.sh`, logs, pins |
 | [docs/scripts.md](docs/scripts.md) | Rôle de chaque script dans `tools/` |
 | [docs/troubleshooting.md](docs/troubleshooting.md) | Erreurs connues (tirpc, lighttpd, nfs-utils, portmap…) |
+| [docs/deploy-and-test.md](docs/deploy-and-test.md) | **Déployer / tester** le firmware custom, restauration stock, rescue, débrickage |
 | [docs/flashing.md](docs/flashing.md) | Fichiers `.pkgtb` et flash routeur |
 | [docs/migration.md](docs/migration.md) | Quitter un ancien clone `asuswrt-merlin.ng` monolithique |
 | [docs/host-deps-arch.md](docs/host-deps-arch.md) | Paquets pacman pour le build hôte |
-| [patches/README.md](patches/README.md) | Détail des 5 patches GCC 10 / TI-RPC |
+| [patches/README.md](patches/README.md) | **23** patches GCC 10 / TI-RPC / toolchain native (0001–0023, 0013b) |
 
 ## Prérequis
 

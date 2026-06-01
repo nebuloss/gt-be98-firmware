@@ -34,7 +34,7 @@ Si `vendor/` ou `toolchain/` manquent, `./build.sh` lance d’abord `tools/setup
 1. Clone **RMerl/am-toolchains** dans `toolchain/am-toolchains/` (~quelques Go)
 2. Clone **gnuton/asuswrt-merlin.ng** dans `vendor/asuswrt-merlin.ng/` (~plusieurs Go)
 3. Suppression des SDK Merlin inutiles (ne garde que `src-rt-5.04behnd.4916` pour le GT-BE98)
-4. Application des 5 patches dans `patches/`
+4. Application des **23** patches dans `patches/` (voir [patches/README.md](../patches/README.md))
 
 Durée : surtout limitée par le réseau (clone). Comptez 20–60 min selon la connexion.
 
@@ -60,6 +60,10 @@ ls -lh vendor/asuswrt-merlin.ng/release/src-rt-5.04behnd.4916/targets/96813GW/GT
 ```
 
 Voir [flashing.md](flashing.md) pour l’usage de ces fichiers.
+
+Pour la chaîne de build, les formats d’image et l’OS au runtime : [architecture/README.md](architecture/README.md).
+
+Avant de flasher sur le routeur : [deploy-and-test.md](deploy-and-test.md) (procédure Web GUI, rescue Asus, restauration firmware stock).
 
 ## Espace disque indicatif
 

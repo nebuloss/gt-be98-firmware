@@ -39,7 +39,12 @@ patch -p1 < ../../patches/0019-strongswan-skip-autoreconf.patch
 patch -p1 < ../../patches/0020-strongswan-autotools-bootstrap.patch
 patch -p1 < ../../patches/0021-nfs-utils-host-rpcgen.patch
 patch -p1 < ../../patches/0022-cjson-cmake-libcreduction.patch
+patch -p1 < ../../patches/0023-coovachilli-gengetopt-optional.patch
+# Variante lldpd 1.0.11 (si le profil l’active) :
+# patch -p1 < ../../patches/0013b-lldpd-1.0.11-libxml2.patch
 ```
+
+**Total : 23 fichiers** dans `patches/` (`0001`–`0023`, plus `0013b` pour lldpd 1.0.11). Voir aussi [docs/architecture/01-host-and-build.md](../docs/architecture/01-host-and-build.md) et [04-packages.md](../docs/architecture/04-packages.md) pour le mapping patches ↔ étapes de build.
 
 ## Résumé
 
@@ -65,7 +70,9 @@ patch -p1 < ../../patches/0022-cjson-cmake-libcreduction.patch
 | 0019 | `router/Makefile` + `tools/strongswan-ensure-aux.sh` | autoreconf / aux manquants | pas d’`autoreconf` systématique ; copie `config.guess` etc. depuis automake |
 | 0020 | `strongswan/configure.ac` | `Makefile.in` absent / `AC_LIB_PREFIX` | retire `AC_LIB_PREFIX` ; `autoreconf -ifi` si pas de `Makefile.in` |
 | 0021 | `router/Makefile`, `nfs-utils-1.3.4` | `rpcgen`: cannot execute binary file (ARM rpcgen sur hôte x86_64) | pas de `CC_FOR_BUILD=$(CC)` ; build hôte `rpcgen` + ne pas le reconstruire en cross |
-| 0022 | `router-sysdep/cjson`, `router/Makefile` | `libcreduction`: Missing `libcjson.so.1` (`bp3` sans lib installée) | CMake 4.x + `install` cassé (`.libs`) ; erreurs `cjson` non ignorées si `GTBE98_TC_ROOT` |
+| 0022 | `router-sysdep.gt-be98/cjson`, `router/Makefile` | `libcreduction`: Missing `libcjson.so.1` (`bp3` sans lib installée) | CMake 4.x + `install` cassé (`.libs`) ; erreurs `cjson` non ignorées si `GTBE98_TC_ROOT` |
+| 0023 | `coovachilli` | `gengetopt` absent sur hôte Arch | Ne régénère pas `cmdline.c` si le fichier existe déjà |
+| 0013b | `router/Makefile` (lldpd-1.0.11) | Même problème libxml2 que 0013 | Liens vers `$(STAGEDIR)/usr/lib/libxml2.so` (profil alternatif) |
 
 ## Notes
 

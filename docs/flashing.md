@@ -1,5 +1,7 @@
 # Images de sortie et flash
 
+Guide complet **déploiement, tests, restauration stock, rescue et débrickage** : [deploy-and-test.md](deploy-and-test.md) (procédures Asus officielles + console série).
+
 ## Où sont les fichiers
 
 Après un build réussi :
@@ -43,4 +45,4 @@ Flasher de préférence les images préfixées **`GT-BE98_`**, pas les variantes
 ## Attention
 
 - Flasher une image incompatible (mauvais modèle / mauvaise variante) peut bricker le routeur.
-- Garder une sauvegarde du firmware d’usine ou une méthode de recovery connue avant test.
+- Garder une sauvegarde du firmware d’usine ou une méthode de recovery connue avant test (voir [deploy-and-test.md](deploy-and-test.md)).

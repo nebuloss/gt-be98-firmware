@@ -43,6 +43,10 @@ Après fetch, `toolchain/TOOLCHAIN_PIN` contient le commit de [RMerl/am-toolchai
 
 À utiliser après modification des patches ou d’un build interrompu sur ces composants.
 
+## Architecture (audit système)
+
+Documentation détaillée (graphes de build, `.pkgtb`, paquets, boot) : [architecture/README.md](architecture/README.md).
+
 ## Cible make
 
 - **Modèle** : `gt-be98` (fixe dans `build.sh`)
