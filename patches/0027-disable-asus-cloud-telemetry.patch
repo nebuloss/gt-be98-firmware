@@ -1,0 +1,56 @@
+--- a/release/src/router/rc/services.c
++++ b/release/src/router/rc/services.c
+@@ -4248,6 +4248,10 @@
+ 	pid_t pid = 0;
+ 	int ret = 0;
+ 
++	/* GT-BE98 fork: awsiot (ASUS AWS IoT cloud) off by default. Re-enable: nvram set gtbe98_awsiot=1. */
++	if (!nvram_get_int("gtbe98_awsiot"))
++		return 0;
++
+ 	stop_awsiot();
+ 
+ 
+@@ -4450,6 +4454,10 @@
+ 	char *networkmap_argv[] = {"networkmap", NULL, NULL};
+ 	pid_t pid;
+ 
++	/* GT-BE98 fork: networkmap off by default (webui has its own client list). Re-enable: nvram set gtbe98_networkmap=1. */
++	if (!nvram_get_int("gtbe98_networkmap"))
++		return 0;
++
+ 	//if (!is_routing_enabled())
+ 	//	return 0;
+ 
+@@ -6828,6 +6836,9 @@
+ #ifdef RTCONFIG_BCM_MFG
+ 	return;
+ #endif
++	/* GT-BE98 fork: asd (ASUS signature daemon) off by default. Re-enable: nvram set gtbe98_asd=1. */
++	if (!nvram_get_int("gtbe98_asd"))
++		return;
+ 	stop_asd();
+ 	xstart("asd");
+ }
+@@ -26042,6 +26053,9 @@
+ #ifdef RTCONFIG_BCM_MFG
+ 	return;
+ #endif
++	/* GT-BE98 fork: conn_diag (ASUS connection diagnostics) off by default. Re-enable: nvram set gtbe98_conn_diag=1. */
++	if (!nvram_get_int("gtbe98_conn_diag"))
++		return;
+ 	stop_conn_diag();
+ 
+ 	_eval(cmd, NULL, 0, &pid);
+--- a/release/src/router/rc/natnl_api.c
++++ b/release/src/router/rc/natnl_api.c
+@@ -104,6 +104,9 @@
+ 
+ void start_mastiff()
+ {
++	/* GT-BE98 fork: mastiff (ASUS AAE cloud tunnel) off by default. Re-enable: nvram set gtbe98_mastiff=1. */
++	if (!nvram_get_int("gtbe98_mastiff"))
++		return;
+ #ifdef CONFIG_BCMWL5
+ #ifndef RTCONFIG_BCM_MFG
+ 	if (factory_debug())

@@ -81,6 +81,7 @@ Note : `0001`–`0023` sont des correctifs **de build** (toolchain/cross). `0024
 | 0024 | `rc/services.c`, `rc/watchdog.c` | **Fonctionnel** : infosvr (découverte ASUS, UDP 9999) tourne par défaut — surface d'attaque inutile | `start_infosvr`/`infosvr_check` retournent tôt sauf si `nvram infosvr_enable=1` (désactivé par défaut, réactivable sans reflash) |
 | 0025 | `shared/wlif_utils_ax.c` | **Fonctionnel** : MAINFH (`wl3.1`/MyPrivateNetwork) forcé par le générateur hostapd closed, ingouvernable par nvram | `get_all_lanifnames_list` (seule source de la liste BSS du générateur) retire les ifaces de `nvram hapd_exclude_ifnames`. Vide par défaut ; `="wl3.1"` supprime MAINFH à la source (BSS + bridge) → retire les watchdogs |
 | 0026 | `rc/ate.c` | **Fonctionnel** : envrams (serveur NVRAM distant, TCP 5152) tourne par défaut — surface d'attaque | `start_envrams` retourne tôt sauf si `nvram envrams_enable=1` (désactivé par défaut). Plan de contrôle = webui uniquement |
+| 0027 | `rc/services.c`, `rc/natnl_api.c` | **Fonctionnel** : daemons cloud/télémétrie ASUS (awsiot/AWS-IoT, mastiff/AAE, asd, conn_diag, networkmap) tournent par défaut et sont respawnés par `watchdog.c` — surface d'attaque + télémétrie inutiles (mode AP) | Garde `gtbe98_<daemon>` en tête de chaque `start_*` (réactiver: `nvram set gtbe98_awsiot=1`, etc.). Désactivés par défaut. envrams traité par 0026 (rebuild). |
 
 ## Notes
 

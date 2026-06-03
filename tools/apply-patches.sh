@@ -19,6 +19,7 @@ GTBE98_FUNCTIONAL_PATCHES=(
     "0024-infosvr-disable-by-default.patch"
     "0025-mainfh-exclude-ifnames-from-hapd.patch"
     "0026-envrams-disable-by-default.patch"
+    "0027-disable-asus-cloud-telemetry.patch"
 )
 
 gtbe98_patch_cleanup_artifacts() {
@@ -108,6 +109,11 @@ gtbe98_patch_semantics_ok() {
         0026-envrams-disable-by-default.patch)
             # functional: envrams_enable guard added to rc/ate.c
             grep -q 'envrams_enable' release/src/router/rc/ate.c 2>/dev/null
+            ;;
+        0027-disable-asus-cloud-telemetry.patch)
+            # functional: per-daemon gtbe98_* guards (awsiot/asd/conn_diag/networkmap/mastiff)
+            grep -q 'gtbe98_awsiot' release/src/router/rc/services.c 2>/dev/null \
+                && grep -q 'gtbe98_mastiff' release/src/router/rc/natnl_api.c 2>/dev/null
             ;;
         *)
             return 1
