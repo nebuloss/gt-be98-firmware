@@ -33,7 +33,7 @@ Image produite :
 | [docs/flashing.md](docs/flashing.md) | Fichiers `.pkgtb` et flash routeur |
 | [docs/migration.md](docs/migration.md) | Quitter un ancien clone `asuswrt-merlin.ng` monolithique |
 | [docs/host-deps-arch.md](docs/host-deps-arch.md) | Paquets pacman pour le build hôte |
-| [patches/README.md](patches/README.md) | **23** patches GCC 10 / TI-RPC / toolchain native (0001–0023, 0013b) |
+| [patches/README.md](patches/README.md) | **25** patches GCC 10 / TI-RPC / toolchain native + fonctionnels (0001–0023 build, 0024–0025 fonctionnels, 0013b) |
 
 ## Prérequis
 

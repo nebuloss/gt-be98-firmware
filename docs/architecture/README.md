@@ -20,7 +20,7 @@ This is **not** OpenWrt: there is no `procd` or `opkg`. Userspace is **glibc**, 
 - [../build-guide.md](../build-guide.md) — `build.sh`, pins, `clean`
 - [../deploy-and-test.md](../deploy-and-test.md) — deploy, test, stock restore, rescue, brick recovery  
 - [../flashing.md](../flashing.md) — output paths and flash safety
-- [../../patches/README.md](../../patches/README.md) — **23** host/cross patches (0001–0023, plus `0013b`)
+- [../../patches/README.md](../../patches/README.md) — **25** patches (0001–0023 host/cross, 0024–0025 functional, plus `0013b`)
 - [../../tools/verify-artifact.sh](../../tools/verify-artifact.sh) — post-build FIT / pkgtb / rootfs checks
 
 ## Key paths (after `./build.sh`)
