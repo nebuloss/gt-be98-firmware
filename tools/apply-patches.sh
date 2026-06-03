@@ -11,6 +11,15 @@ PATCH_LOG_DIR="${ROOT}/logs/patch-apply"
 PATCH_TMP_DIR="${ROOT}/logs/patch-tmp"
 PATCH_FLAGS=( -p1 --batch -N --forward -F 10 --reject-file=/dev/null )
 
+# Functional (runtime-behaviour) patches catalogued in patches/README.md.
+# Unlike 0001-0023 (build fixes), these change the firmware's default
+# behaviour and are NOT required for a successful build — but their absence
+# silently ships un-hardened firmware, so warn loudly when one is missing.
+GTBE98_FUNCTIONAL_PATCHES=(
+    "0024-infosvr-disable-by-default.patch"
+    "0025-mainfh-exclude-ifnames-from-hapd.patch"
+)
+
 gtbe98_patch_cleanup_artifacts() {
     find "$VENDOR" -name '*.orig' -delete 2>/dev/null || true
     find "$VENDOR" -name '*.rej' -delete 2>/dev/null || true
@@ -108,6 +117,22 @@ gtbe98_verify_required_patches() {
     return 0
 }
 
+# Warn (do not fail) when a catalogued functional patch file is absent: the
+# build still succeeds, but the resulting firmware lacks that hardening.
+gtbe98_warn_missing_functional_patches() {
+    local missing=() b
+    for b in "${GTBE98_FUNCTIONAL_PATCHES[@]}"; do
+        [[ -f "${PATCH_DIR}/${b}" ]] || missing+=("$b")
+    done
+    ((${#missing[@]} > 0)) || return 0
+    echo "WARNING: functional patch file(s) missing from ${PATCH_DIR}:" >&2
+    for b in "${missing[@]}"; do echo "  - ${b}" >&2; done
+    echo "  These are catalogued in patches/README.md but not present, so the" >&2
+    echo "  firmware will build WITHOUT their runtime hardening (e.g. 0024 leaves" >&2
+    echo "  infosvr/UDP 9999 enabled, 0025 leaves the MAINFH BSS in place)." >&2
+    echo "  Restore the .patch file(s) and re-run ./build.sh to apply them." >&2
+}
+
 [[ -d "$VENDOR/release" ]] || {
     echo "Missing vendor tree: $VENDOR — run ./build.sh or ./tools/setup.sh" >&2
     exit 1
@@ -190,4 +215,5 @@ done
 gtbe98_patch_cleanup_artifacts
 "${ROOT}/tools/ensure-cjson-makefile.sh" >/dev/null 2>&1 || true
 gtbe98_verify_required_patches || exit 1
+gtbe98_warn_missing_functional_patches
 echo "Patches applied under $VENDOR"
