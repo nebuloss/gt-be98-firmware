@@ -82,10 +82,10 @@ gtbe98_patch_semantics_ok() {
                 && grep -q '\-C \$@/support' "$mk" 2>/dev/null
             ;;
         0023-coovachilli-gengetopt-optional.patch)
+            # Only Makefile.am is patched; the generated Makefile (absent until
+            # coovachilli-configure runs autoreconf) inherits the fix from it.
             grep -q 'command -v gengetopt' \
-                release/src/router/coovachilli/src/Makefile.am 2>/dev/null \
-                && grep -q 'command -v gengetopt' \
-                release/src/router/coovachilli/src/Makefile 2>/dev/null
+                release/src/router/coovachilli/src/Makefile.am 2>/dev/null
             ;;
         0022-cjson-cmake-libcreduction.patch)
             grep -q 'CMAKE_EXTRA := -DCMAKE_POLICY_VERSION_MINIMUM=3.5' \
