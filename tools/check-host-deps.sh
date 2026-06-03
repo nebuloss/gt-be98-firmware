@@ -12,6 +12,9 @@ QUICK=0
 
 FAIL=0
 ARCH_HINT='sudo pacman -S --needed base-devel git perl python flex bison bc rsync patch unzip texinfo gettext openssl ncurses autoconf automake libtool autoconf-archive pkgconf gperf cpio xz zlib gawk subversion intltool cmake gengetopt lib32-glibc lib32-gcc-libs lib32-zlib'
+DEBIAN_HINT='sudo apt-get install -y build-essential git perl python3 flex bison bc rsync patch unzip texinfo gettext openssl libssl-dev libncurses-dev autoconf automake libtool autoconf-archive pkgconf gperf cpio xz-utils zlib1g-dev gawk subversion intltool cmake gengetopt'
+# 32-bit runtime for LnxDictPrep (i386 ELF in the Merlin tree):
+DEBIAN_HINT_I386='sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install -y libc6:i386 libstdc++6:i386 zlib1g:i386'
 
 fail() { echo "check-host-deps: FAIL: $*" >&2; FAIL=1; }
 ok() { echo "check-host-deps: OK: $*"; }
@@ -45,6 +48,9 @@ for cmd in \
 do
     case "$cmd" in
         python3) need_cmd python3 python ;;
+        # Debian's libtool package ships only libtoolize (no /usr/bin/libtool);
+        # autoreconf uses libtoolize, so either binary satisfies the requirement.
+        libtool) need_cmd libtoolize libtool ;;
         *) need_cmd "$cmd" ;;
     esac
 done
@@ -64,7 +70,7 @@ if command -v gcc >/dev/null 2>&1; then
     if [[ -n "$cc1" && -x "$cc1" ]]; then
         mpfr_line="$(ldd "$cc1" 2>/dev/null | grep libmpfr || true)"
         if [[ "$mpfr_line" == *"not found"* ]]; then
-            fail "host cc1 missing libmpfr — install mpfr (Arch: pacman -S mpfr)"
+            fail "host cc1 missing libmpfr — install mpfr (Arch: pacman -S mpfr; Debian: apt-get install libmpfr6)"
         elif [[ "$mpfr_line" == *crosstools* || "$mpfr_line" == *am-toolchains* || "$mpfr_line" == *"/toolchain/"* ]]; then
             fail "host cc1 loads crosstool libmpfr — unset LD_LIBRARY_PATH and use ./build.sh only"
         else
@@ -76,10 +82,10 @@ else
 fi
 
 # 32-bit loader for LnxDictPrep (i386 binary in router tree)
-if [[ -f /lib/ld-linux.so.2 || -f /usr/lib32/ld-linux.so.2 ]]; then
+if [[ -f /lib/ld-linux.so.2 || -f /usr/lib32/ld-linux.so.2 || -f /lib/i386-linux-gnu/ld-linux.so.2 ]]; then
     ok "32-bit dynamic linker (ld-linux.so.2)"
 else
-    fail "no 32-bit dynamic linker — LnxDictPrep will fail (Arch: lib32-glibc lib32-gcc-libs)"
+    fail "no 32-bit dynamic linker — LnxDictPrep will fail (Arch: lib32-glibc lib32-gcc-libs; Debian: ${DEBIAN_HINT_I386})"
 fi
 
 # Vendor-specific: LnxDictPrep after clone
@@ -90,6 +96,7 @@ if [[ "$QUICK" -eq 0 && -f "$DICTPREP" ]]; then
         fail "LnxDictPrep missing 32-bit libraries"
         printf '%s\n' "$ldd_out" | grep 'not found' >&2
         echo "  Arch: sudo pacman -S --needed lib32-glibc lib32-gcc-libs lib32-zlib" >&2
+        echo "  Debian: ${DEBIAN_HINT_I386}" >&2
     else
         ok "LnxDictPrep (${DICTPREP##*/}) libraries"
     fi
@@ -102,6 +109,9 @@ if [[ $FAIL -ne 0 ]]; then
     echo "Install host dependencies, then re-run ./build.sh" >&2
     if command -v pacman >/dev/null 2>&1; then
         echo "  Arch hint: ${ARCH_HINT}" >&2
+    elif command -v apt-get >/dev/null 2>&1; then
+        echo "  Debian/Ubuntu hint: ${DEBIAN_HINT}" >&2
+        echo "  Debian/Ubuntu 32-bit (LnxDictPrep): ${DEBIAN_HINT_I386}" >&2
     else
         echo "  See docs/host-deps-arch.md for package names" >&2
     fi
