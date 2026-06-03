@@ -95,6 +95,15 @@ gtbe98_patch_semantics_ok() {
                 "release/${GTBE98_SDK}/${GTBE98_SYSDEP}/cjson/Bcmbuild.mk" 2>/dev/null \
                 && grep -A3 '^cjson:' "$mk" 2>/dev/null | grep -q 'GTBE98_TC_ROOT'
             ;;
+        0024-infosvr-disable-by-default.patch)
+            # functional: infosvr_enable guard added to both rc files
+            grep -q 'infosvr_enable' release/src/router/rc/services.c 2>/dev/null \
+                && grep -q 'infosvr_enable' release/src/router/rc/watchdog.c 2>/dev/null
+            ;;
+        0025-mainfh-exclude-ifnames-from-hapd.patch)
+            # functional: hapd_exclude_ifnames filter added to wlif_utils_ax.c
+            grep -q 'hapd_exclude_ifnames' release/src/router/shared/wlif_utils_ax.c 2>/dev/null
+            ;;
         *)
             return 1
             ;;
