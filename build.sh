@@ -97,8 +97,11 @@ START_TS=$(date +%s)
     cd "${VENDOR}/release/${SDK}"
     gtbe98_sanitize_ld_library_path
     # -u: no inherited LD; LD_LIBRARY_PATH= on CLI overrides makefile export for host tools.
+    # SHELL=/bin/bash: the SDK build/prebuild_checks.mk asserts $BASH_VERSION; on
+    # Debian /bin/sh is dash (Arch's is bash), so force bash for all (sub-)makes.
     env -u LD_LIBRARY_PATH \
         make FORCE=1 \
+        SHELL=/bin/bash \
         GTBE98_TC_ROOT="${GTBE98_TC_ROOT}" \
         GTBE98_ROOT="${GTBE98_ROOT}" \
         LD_LIBRARY_PATH= \
