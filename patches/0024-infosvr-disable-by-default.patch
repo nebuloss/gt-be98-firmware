@@ -1,0 +1,27 @@
+diff --git a/release/src/router/rc/services.c b/release/src/router/rc/services.c
+--- a/release/src/router/rc/services.c
++++ b/release/src/router/rc/services.c
+@@ -4607,6 +4607,10 @@
+ 	char *infosvr_argv[] = {"/usr/sbin/infosvr", "br0", NULL};
+ 	pid_t pid;
+ 
++	/* Fork GT-BE98 : infosvr désactivé par défaut (réactiver: nvram set infosvr_enable=1). */
++	if (!nvram_get_int("infosvr_enable"))
++		return 0;
++
+ #ifdef RTCONFIG_MODEM_BRIDGE
+ 	if(sw_mode() == SW_MODE_AP && nvram_get_int("modem_bridge"))
+ 		return 0;
+diff --git a/release/src/router/rc/watchdog.c b/release/src/router/rc/watchdog.c
+--- a/release/src/router/rc/watchdog.c
++++ b/release/src/router/rc/watchdog.c
+@@ -11301,6 +11301,9 @@
+ 
+ void infosvr_check(void)
+ {
++	/* Fork GT-BE98 : ne pas relancer infosvr s'il est désactivé (cf. start_infosvr). */
++	if (!nvram_get_int("infosvr_enable"))
++		return;
+ 	if (!pids("infosvr"))
+ 		start_infosvr();
+ }

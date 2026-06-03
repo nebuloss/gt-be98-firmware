@@ -1,0 +1,28 @@
+diff --git a/release/src/router/shared/wlif_utils_ax.c b/release/src/router/shared/wlif_utils_ax.c
+--- a/release/src/router/shared/wlif_utils_ax.c
++++ b/release/src/router/shared/wlif_utils_ax.c
+@@ -836,6 +836,24 @@
+ 			strcat(ifnames_list, " ");
+ 		}
+ 	}
++
++	/* Fork GT-BE98 : retirer les interfaces listées dans nvram
++	 * `hapd_exclude_ifnames` (séparées par espace). C'est le point unique d'où le
++	 * générateur hostapd (closed hostapd_config_be.o) tire sa liste de BSS, via
++	 * get_filtered_ifnames_list. En filtrant ICI on neutralise À LA SOURCE les BSS
++	 * forcés comme MAINFH (wl3.1 / MyPrivateNetwork) : le générateur les émet sinon
++	 * inconditionnellement — aucun flag nvram (apm*_enable/disabled/dut_list,
++	 * wlX.Y_bss_enabled, lan_ifnames, wlX_vifnames) ne les gate (vérifié en live).
++	 * C'est aussi l'énumérateur des membres de bridge → l'iface sort du bridge.
++	 * Vide par défaut → aucun changement. Permet de retirer les watchdogs /jffs
++	 * (ssid-suppressor + bridge-enforcer). Activer : nvram set hapd_exclude_ifnames="wl3.1". */
++	{
++		char excl[128], word[64], *next;
++		snprintf(excl, sizeof(excl), "%s", nvram_safe_get("hapd_exclude_ifnames"));
++		foreach(word, excl, next)
++			_remove_from_list(word, ifnames_list, ifnames_listsz, ' ');
++	}
++
+ 	return strlen(ifnames_list);
+ }
+ 
