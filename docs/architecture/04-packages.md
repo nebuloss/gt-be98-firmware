@@ -17,10 +17,16 @@ Merlin does **not** use kernel-style `obj-y` in the kernel tree; router packages
 
 | Metric | Count |
 |--------|------:|
-| `RTCONFIG_*=y` in router `.config` | **226** |
-| `obj-$(RTCONFIG_*)` lines in `router/Makefile` | **~344** |
+| `RTCONFIG_*=y` in router `.config` (build-verified) | **226** |
+| `obj-$(RTCONFIG_*)` lines in `router/Makefile` | **344** |
+| Distinct `RTCONFIG_*` flags referenced by those lines | **168** |
+| All conditional `obj-$(...)` lines (any variable) | **438** |
 | Enabled flag → package mappings (unique packages) | **~163** |
-| Always-on `obj-y` lines (subset; many are duplicates/variants) | **~100+** |
+| Always-on `obj-y` lines (subset; many are duplicates/variants) | **156** |
+
+Figures verified against a real `ad42d5e8` tree: `obj-` line counts from
+`release/src/router/Makefile`; the **226** from the build-generated
+`bcmdrivers/.../bcm96813/main/src/router/.config`.
 
 Hundreds of `RTCONFIG_*` symbols exist in Kconfig but are **off** for GT-BE98 (other SKUs). They are not listed here.
 

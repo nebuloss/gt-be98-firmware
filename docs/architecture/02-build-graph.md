@@ -80,7 +80,7 @@ Despite the name, **`libcreduction`** is the stage that consolidates router + BD
 `release/src/router/Makefile`:
 
 - **`obj-y`** — always built for this profile (e.g. `busybox`, `shared`, `nvram`, `httpd`, `dnsmasq`, `ipset-7.6`, `iptables`, `rc`, `ctf`, `dhd_monitor`).
-- **`obj-$(RTCONFIG_*)`** — **~344** conditional lines; **226** `RTCONFIG_*=y` in the GT-BE98 `.config` used for this tree (see [04-packages.md](04-packages.md)).
+- **`obj-$(RTCONFIG_*)`** — **344** conditional lines (of **438** total `obj-$(...)` lines); **226** `RTCONFIG_*=y` in the GT-BE98 `.config` used for this tree (see [04-packages.md](04-packages.md)).
 - **`obj-$(HND_ROUTER)`** — HND-specific pieces including **`bcm_boot_launcher`**, **`httpdshared`**.
 
 Install staging ends under:
