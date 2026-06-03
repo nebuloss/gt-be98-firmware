@@ -1,0 +1,15 @@
+diff --git a/release/src/router/rc/ate.c b/release/src/router/rc/ate.c
+--- a/release/src/router/rc/ate.c
++++ b/release/src/router/rc/ate.c
+@@ -5450,6 +5450,11 @@
+ 	int ret;
+ 
+ 	ret = 0;
++	/* Fork GT-BE98 : envrams (serveur NVRAM distant, TCP 5152) désactivé par
++	 * défaut (réactiver: nvram set envrams_enable=1). Plan de contrôle = webui. */
++	if (!nvram_get_int("envrams_enable"))
++		return 0;
++
+ #if defined(RTCONFIG_HND_ROUTER_AX_6756) || defined(RTCONFIG_HND_ROUTER_BE_4916)
+ 	if (!pids("envrams")){
+ 		dbg("[%s][%d] start envrams\n", __func__, __LINE__);

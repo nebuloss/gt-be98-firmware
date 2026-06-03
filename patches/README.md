@@ -42,11 +42,12 @@ patch -p1 < ../../patches/0022-cjson-cmake-libcreduction.patch
 patch -p1 < ../../patches/0023-coovachilli-gengetopt-optional.patch
 patch -p1 < ../../patches/0024-infosvr-disable-by-default.patch
 patch -p1 < ../../patches/0025-mainfh-exclude-ifnames-from-hapd.patch
+patch -p1 < ../../patches/0026-envrams-disable-by-default.patch
 # Variante lldpd 1.0.11 (si le profil l’active) :
 # patch -p1 < ../../patches/0013b-lldpd-1.0.11-libxml2.patch
 ```
 
-**Total : 25 fichiers** dans `patches/` (`0001`–`0025`, plus `0013b` pour lldpd 1.0.11).
+**Total : 26 fichiers** dans `patches/` (`0001`–`0026`, plus `0013b` pour lldpd 1.0.11).
 Note : `0001`–`0023` sont des correctifs **de build** (toolchain/cross). `0024`+ sont
 **fonctionnels** (modif du comportement runtime du firmware). Voir aussi [docs/architecture/01-host-and-build.md](../docs/architecture/01-host-and-build.md) et [04-packages.md](../docs/architecture/04-packages.md) pour le mapping patches ↔ étapes de build.
 
@@ -79,6 +80,7 @@ Note : `0001`–`0023` sont des correctifs **de build** (toolchain/cross). `0024
 | 0013b | `router/Makefile` (lldpd-1.0.11) | Même problème libxml2 que 0013 | Liens vers `$(STAGEDIR)/usr/lib/libxml2.so` (profil alternatif) |
 | 0024 | `rc/services.c`, `rc/watchdog.c` | **Fonctionnel** : infosvr (découverte ASUS, UDP 9999) tourne par défaut — surface d'attaque inutile | `start_infosvr`/`infosvr_check` retournent tôt sauf si `nvram infosvr_enable=1` (désactivé par défaut, réactivable sans reflash) |
 | 0025 | `shared/wlif_utils_ax.c` | **Fonctionnel** : MAINFH (`wl3.1`/MyPrivateNetwork) forcé par le générateur hostapd closed, ingouvernable par nvram | `get_all_lanifnames_list` (seule source de la liste BSS du générateur) retire les ifaces de `nvram hapd_exclude_ifnames`. Vide par défaut ; `="wl3.1"` supprime MAINFH à la source (BSS + bridge) → retire les watchdogs |
+| 0026 | `rc/ate.c` | **Fonctionnel** : envrams (serveur NVRAM distant, TCP 5152) tourne par défaut — surface d'attaque | `start_envrams` retourne tôt sauf si `nvram envrams_enable=1` (désactivé par défaut). Plan de contrôle = webui uniquement |
 
 ## Notes
 

@@ -18,6 +18,7 @@ PATCH_FLAGS=( -p1 --batch -N --forward -F 10 --reject-file=/dev/null )
 GTBE98_FUNCTIONAL_PATCHES=(
     "0024-infosvr-disable-by-default.patch"
     "0025-mainfh-exclude-ifnames-from-hapd.patch"
+    "0026-envrams-disable-by-default.patch"
 )
 
 gtbe98_patch_cleanup_artifacts() {
@@ -104,6 +105,10 @@ gtbe98_patch_semantics_ok() {
             # functional: hapd_exclude_ifnames filter added to wlif_utils_ax.c
             grep -q 'hapd_exclude_ifnames' release/src/router/shared/wlif_utils_ax.c 2>/dev/null
             ;;
+        0026-envrams-disable-by-default.patch)
+            # functional: envrams_enable guard added to rc/ate.c
+            grep -q 'envrams_enable' release/src/router/rc/ate.c 2>/dev/null
+            ;;
         *)
             return 1
             ;;
@@ -138,7 +143,8 @@ gtbe98_warn_missing_functional_patches() {
     for b in "${missing[@]}"; do echo "  - ${b}" >&2; done
     echo "  These are catalogued in patches/README.md but not present, so the" >&2
     echo "  firmware will build WITHOUT their runtime hardening (e.g. 0024 leaves" >&2
-    echo "  infosvr/UDP 9999 enabled, 0025 leaves the MAINFH BSS in place)." >&2
+    echo "  infosvr/UDP 9999 enabled, 0025 leaves the MAINFH BSS in place, 0026" >&2
+    echo "  leaves envrams/TCP 5152 enabled)." >&2
     echo "  Restore the .patch file(s) and re-run ./build.sh to apply them." >&2
 }
 
