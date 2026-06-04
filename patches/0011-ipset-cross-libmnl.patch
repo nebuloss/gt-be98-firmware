@@ -1,7 +1,7 @@
 --- a/release/src/router/Makefile
 +++ b/release/src/router/Makefile
-@@ -3660,12 +3660,14 @@ ipset-7.6/configure:
- 
+@@ -3660,10 +3660,10 @@ ipset-7.6/configure:
+
  ipset-7.6/Makefile: ipset-7.6/configure
  	cd ipset-7.6 && \
 -	libmnl_CFLAGS="-I$(STAGEDIR)/usr/include" \
@@ -9,13 +9,9 @@
 -	CFLAGS="-Os -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections" \
 -	LDFLAGS="-Wl,--gc-sections" \
 +	libmnl_CFLAGS="-I$(TOP)/libmnl-1.0.4/include" \
-+	libmnl_LIBS="-L$(TOP)/libmnl-1.0.4/src/.libs -Wl,-rpath-link=$(TOP)/libmnl-1.0.4/src/.libs $(TOP)/libmnl-1.0.4/src/.libs/libmnl.so" \
++	libmnl_LIBS="-L$(TOP)/libmnl-1.0.4/src/.libs -lmnl" \
 +	CFLAGS="-Os -Wall $(EXTRACFLAGS) -ffunction-sections -fdata-sections -I$(TOP)/libmnl-1.0.4/include" \
 +	LDFLAGS="-Wl,--gc-sections -L$(TOP)/libmnl-1.0.4/src/.libs -Wl,-rpath-link=$(TOP)/libmnl-1.0.4/src/.libs" \
  	$(CONFIGURE) --prefix=/usr --disable-rpath \
  		--with-kmod=no --with-kbuild=$(LINUXDIR)
-+	@find ipset-7.6 -name Makefile -exec sed -i \
-+		's|-lmnl |'"$(TOP)"'/libmnl-1.0.4/src/.libs/libmnl.so |g' {} +
- 
- ipset-7.6: libmnl-1.0.4 ipset-7.6/Makefile
- 	$(MAKE) -C $@ && $(MAKE) $@-stage
+
