@@ -22,8 +22,21 @@ else
     echo "Cloning ${GTBE98_UPSTREAM_URL} (ref: ${GTBE98_UPSTREAM_REF}) ..."
     mkdir -p "${GTBE98_ROOT}/vendor"
     if [[ "${GTBE98_UPSTREAM_REF}" =~ ^[0-9a-f]{7,40}$ ]]; then
-        git clone "${GTBE98_UPSTREAM_URL}" "${GTBE98_VENDOR}"
-        git -C "${GTBE98_VENDOR}" checkout --detach "${GTBE98_UPSTREAM_REF}"
+        # Pinned to a SHA. `git clone --depth 1 --branch` only accepts branch/tag
+        # names, so naively cloning a SHA pulls the FULL history (~3G of .git we
+        # never use). Instead shallow-fetch just that commit (GitHub serves
+        # by-SHA fetches via allowAnySHA1InWant), keeping .git to one snapshot.
+        # Fall back to a full clone if the server refuses a by-SHA fetch.
+        if git init -q "${GTBE98_VENDOR}" \
+            && git -C "${GTBE98_VENDOR}" remote add origin "${GTBE98_UPSTREAM_URL}" \
+            && git -C "${GTBE98_VENDOR}" fetch --depth 1 origin "${GTBE98_UPSTREAM_REF}" 2>/dev/null; then
+            git -C "${GTBE98_VENDOR}" checkout --detach FETCH_HEAD
+        else
+            echo "  shallow by-SHA fetch unavailable; falling back to full clone ..."
+            rm -rf "${GTBE98_VENDOR}"
+            git clone "${GTBE98_UPSTREAM_URL}" "${GTBE98_VENDOR}"
+            git -C "${GTBE98_VENDOR}" checkout --detach "${GTBE98_UPSTREAM_REF}"
+        fi
     elif ! git clone --depth 1 --branch "${GTBE98_UPSTREAM_REF}" "${GTBE98_UPSTREAM_URL}" "${GTBE98_VENDOR}" 2>/dev/null; then
         git clone "${GTBE98_UPSTREAM_URL}" "${GTBE98_VENDOR}"
         git -C "${GTBE98_VENDOR}" checkout "${GTBE98_UPSTREAM_REF}"
