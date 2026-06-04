@@ -11,8 +11,11 @@ QUICK=0
 [[ "${1:-}" == "--quick" ]] && QUICK=1
 
 FAIL=0
-ARCH_HINT='sudo pacman -S --needed base-devel git perl python flex bison bc rsync patch unzip texinfo gettext openssl ncurses autoconf automake libtool autoconf-archive pkgconf gperf cpio xz zlib gawk subversion intltool cmake gengetopt lib32-glibc lib32-gcc-libs lib32-zlib'
-DEBIAN_HINT='sudo apt-get install -y build-essential git perl python3 flex bison bc rsync patch unzip texinfo gettext openssl libssl-dev libncurses-dev autoconf automake libtool autoconf-archive pkgconf gperf cpio xz-utils zlib1g-dev gawk subversion intltool cmake gengetopt'
+# gettext provides autopoint on Arch; lzo + util-linux cover liblzo2/libuuid.
+ARCH_HINT='sudo pacman -S --needed base-devel git perl python flex bison bc rsync patch unzip texinfo gettext openssl ncurses autoconf automake libtool autoconf-archive pkgconf gperf cpio xz zlib gawk subversion intltool cmake gengetopt lzo util-linux lib32-glibc lib32-gcc-libs lib32-zlib'
+# autopoint is a separate package on Debian (not pulled in by gettext); liblzo2-dev
+# (squashfs/jffs2 image tools) and uuid-dev (libuuid.pc) are needed by router pkgs.
+DEBIAN_HINT='sudo apt-get install -y build-essential git perl python3 flex bison bc rsync patch unzip texinfo gettext autopoint openssl libssl-dev libncurses-dev autoconf automake libtool autoconf-archive pkgconf gperf cpio xz-utils zlib1g-dev gawk subversion intltool cmake gengetopt liblzo2-dev uuid-dev'
 # 32-bit runtime for LnxDictPrep (i386 ELF in the Merlin tree):
 DEBIAN_HINT_I386='sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install -y libc6:i386 libstdc++6:i386 zlib1g:i386'
 
@@ -43,7 +46,7 @@ for cmd in \
     pkg-config \
     cmake python3 \
     gperf gengetopt cpio xz gzip \
-    msgfmt msgmerge xgettext \
+    msgfmt msgmerge xgettext autopoint \
     openssl
 do
     case "$cmd" in
@@ -63,6 +66,31 @@ for cmd in svn intltool; do
         echo "check-host-deps: WARN: missing ${cmd} (install if configure/Makefile errors mention it)" >&2
     fi
 done
+
+# Host runtime/dev libraries used by router image + helper tools.
+#   liblzo2  — squashfs/jffs2 image compression tooling
+#   libuuid  — uuid.pc consumed by several router configure scripts
+lib_present() {
+    # match a versioned .so anywhere ldconfig knows about, or a pkg-config module
+    local soname="$1" pcmod="$2"
+    if command -v ldconfig >/dev/null 2>&1 && ldconfig -p 2>/dev/null | grep -q "$soname"; then
+        return 0
+    fi
+    if command -v pkg-config >/dev/null 2>&1 && pkg-config --exists "$pcmod" 2>/dev/null; then
+        return 0
+    fi
+    return 1
+}
+if lib_present 'liblzo2.so.2' 'lzo2'; then
+    ok "liblzo2"
+else
+    echo "check-host-deps: WARN: liblzo2 not found (Arch: lzo; Debian: liblzo2-dev)" >&2
+fi
+if lib_present 'libuuid.so.1' 'uuid'; then
+    ok "libuuid"
+else
+    echo "check-host-deps: WARN: libuuid/uuid.pc not found (Arch: util-linux; Debian: uuid-dev)" >&2
+fi
 
 # Host cc1 / libmpfr (Arch + crosstool LD_LIBRARY_PATH pitfall)
 if command -v gcc >/dev/null 2>&1; then
