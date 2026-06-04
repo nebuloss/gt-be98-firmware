@@ -47,6 +47,7 @@ for cmd in \
     cmake python3 \
     gperf gengetopt cpio xz gzip \
     msgfmt msgmerge xgettext autopoint \
+    makeinfo \
     openssl
 do
     case "$cmd" in
