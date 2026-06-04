@@ -21,6 +21,17 @@ LOG_FILE="${LOG_DIR}/build_${TIMESTAMP}.log"
 IMAGE_DIR="${VENDOR}/release/${SDK}/targets/96813GW"
 
 export GTBE98_ROOT="$ROOT"
+
+# Image assembly calls sbin tools (sgdisk for the GPT table, others). On Arch
+# /usr/sbin is symlinked into /usr/bin so they are always on PATH; on Debian
+# /sbin and /usr/sbin are separate and absent from a normal user's PATH, so the
+# GPT step fails with "sgdisk: command not found" and the image is built without
+# a partition table. Ensure the sbin dirs are on PATH before anything runs.
+for sbindir in /usr/local/sbin /usr/sbin /sbin; do
+    [[ -d "$sbindir" && ":$PATH:" != *":$sbindir:"* ]] && PATH="$PATH:$sbindir"
+done
+export PATH
+
 "${ROOT}/tools/check-host-deps.sh" --quick
 "${ROOT}/tools/ensure-setup.sh"
 "${ROOT}/tools/check-host-deps.sh"

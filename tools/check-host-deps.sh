@@ -7,6 +7,13 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 GTBE98_ROOT="${GTBE98_ROOT:-$ROOT}"
+
+# sbin tools (sgdisk) live in /usr/sbin on Debian, which is not on a normal
+# user's PATH (on Arch it is symlinked into /usr/bin). Add the sbin dirs so the
+# checks below find them even when this script is run standalone.
+for sbindir in /usr/local/sbin /usr/sbin /sbin; do
+    [[ -d "$sbindir" && ":$PATH:" != *":$sbindir:"* ]] && PATH="$PATH:$sbindir"
+done
 QUICK=0
 [[ "${1:-}" == "--quick" ]] && QUICK=1
 
@@ -47,7 +54,7 @@ for cmd in \
     cmake python3 \
     gperf gengetopt cpio xz gzip \
     msgfmt msgmerge xgettext autopoint \
-    makeinfo \
+    makeinfo sgdisk \
     openssl
 do
     case "$cmd" in
