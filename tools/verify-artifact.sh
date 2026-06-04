@@ -193,10 +193,23 @@ fi
 
 # --- Optional / feature binaries (regression guards from prior build fixes) ---
 if [[ -d "$FS" ]]; then
-    for bin in dnsmasq openvpn wg nfsd exportfs lighttpd; do
+    for bin in dnsmasq openvpn wg lighttpd; do
         require_find "$bin" \( -path "*/bin/${bin}" -o -path "*/sbin/${bin}" -o -path "*/usr/sbin/${bin}" \)
     done
-    ok "network/VPN/NFS/lighttpd binaries"
+    # nfsd/exportfs only when NFS is actually selected. GT-BE98's config_gt-be98
+    # has RTCONFIG_NFS off by default; a stale busybox autoconf.h can spuriously
+    # enable it (see docs/troubleshooting.md), which is how earlier incremental
+    # builds shipped the NFS server. Don't require the NFS binaries unless the
+    # build's router .config selected NFS — otherwise a correct clean build fails.
+    ROUTER_CONFIG="${ROOT}/vendor/asuswrt-merlin.ng/release/src/router/.config"
+    if grep -q '^RTCONFIG_NFS=y' "$ROUTER_CONFIG" 2>/dev/null; then
+        for bin in nfsd exportfs; do
+            require_find "$bin" \( -path "*/bin/${bin}" -o -path "*/sbin/${bin}" -o -path "*/usr/sbin/${bin}" \)
+        done
+        ok "network/VPN/NFS/lighttpd binaries (NFS enabled)"
+    else
+        ok "network/VPN/lighttpd binaries (NFS disabled in config — nfsd/exportfs not required)"
+    fi
 
     find "$FS" -path '*/usr/lib/ipsec/charon' -type f 2>/dev/null | grep -q . \
         || fail "rootfs missing strongswan (charon)"
