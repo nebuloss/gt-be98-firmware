@@ -12,10 +12,10 @@ QUICK=0
 
 FAIL=0
 # gettext provides autopoint on Arch; lzo + util-linux cover liblzo2/libuuid.
-ARCH_HINT='sudo pacman -S --needed base-devel git perl python flex bison bc rsync patch unzip texinfo gettext openssl ncurses autoconf automake libtool autoconf-archive pkgconf gperf cpio xz zlib gawk subversion intltool cmake gengetopt lzo util-linux lib32-glibc lib32-gcc-libs lib32-zlib'
+ARCH_HINT='sudo pacman -S --needed base-devel git perl python flex bison bc rsync patch unzip texinfo gettext openssl ncurses autoconf automake libtool autoconf-archive pkgconf gperf cpio xz zlib gawk subversion intltool cmake gengetopt lzo util-linux libtirpc lib32-glibc lib32-gcc-libs lib32-zlib'
 # autopoint is a separate package on Debian (not pulled in by gettext); liblzo2-dev
 # (squashfs/jffs2 image tools) and uuid-dev (libuuid.pc) are needed by router pkgs.
-DEBIAN_HINT='sudo apt-get install -y build-essential git perl python3 flex bison bc rsync patch unzip texinfo gettext autopoint openssl libssl-dev libncurses-dev autoconf automake libtool autoconf-archive pkgconf gperf cpio xz-utils zlib1g-dev gawk subversion intltool cmake gengetopt liblzo2-dev uuid-dev'
+DEBIAN_HINT='sudo apt-get install -y build-essential git perl python3 flex bison bc rsync patch unzip texinfo gettext autopoint openssl libssl-dev libncurses-dev autoconf automake libtool autoconf-archive pkgconf gperf cpio xz-utils zlib1g-dev gawk subversion intltool cmake gengetopt liblzo2-dev uuid-dev libtirpc-dev'
 # 32-bit runtime for LnxDictPrep (i386 ELF in the Merlin tree):
 DEBIAN_HINT_I386='sudo dpkg --add-architecture i386 && sudo apt-get update && sudo apt-get install -y libc6:i386 libstdc++6:i386 zlib1g:i386'
 
@@ -90,6 +90,14 @@ if lib_present 'libuuid.so.1' 'uuid'; then
     ok "libuuid"
 else
     echo "check-host-deps: WARN: libuuid/uuid.pc not found (Arch: util-linux; Debian: uuid-dev)" >&2
+fi
+# Host libtirpc dev (headers + .so): nfs-utils builds its rpcgen tool on the
+# HOST (patch 0021) and #includes <rpc/types.h> + links -ltirpc with host gcc.
+if [[ -f /usr/include/tirpc/rpc/types.h ]] \
+    || { command -v pkg-config >/dev/null 2>&1 && pkg-config --exists libtirpc 2>/dev/null; }; then
+    ok "host libtirpc-dev (rpc/types.h)"
+else
+    fail "host libtirpc-dev missing — nfs-utils host rpcgen needs rpc/types.h + -ltirpc (Arch: libtirpc; Debian: libtirpc-dev)"
 fi
 
 # Host cc1 / libmpfr (Arch + crosstool LD_LIBRARY_PATH pitfall)
