@@ -56,7 +56,7 @@ Paquets hôte si besoin : `sudo pacman -S --needed bison flex readline`.
 **Fix :** `./build.sh` gère ça (`tools/sanitize-host-env.sh` + `env -u LD_LIBRARY_PATH make …`). Patch `0009` recommandé. Relancer :
 
 ```bash
-cd /home/guillaume/misc/be98/gt-be98-firmware
+cd ~/gt-be98-firmware   # ajuster selon votre clone
 ./tools/apply-patches.sh   # inclut 0009 si pas déjà fait
 ./build.sh
 ```
