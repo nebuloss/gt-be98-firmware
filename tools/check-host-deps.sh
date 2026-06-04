@@ -66,9 +66,13 @@ do
     esac
 done
 
-# Some router packages; warn only (not all gt-be98 paths need them)
+# Some router packages; warn only (not all gt-be98 paths need them).
+# intltool ships intltoolize/intltool-merge (no bare `intltool` binary), like
+# the libtool/libtoolize case above — probe the real command it provides.
 for cmd in svn intltool; do
-    if command -v "$cmd" >/dev/null 2>&1; then
+    probe="$cmd"
+    [[ "$cmd" == "intltool" ]] && probe="intltoolize"
+    if command -v "$probe" >/dev/null 2>&1; then
         ok "optional: ${cmd}"
     else
         echo "check-host-deps: WARN: missing ${cmd} (install if configure/Makefile errors mention it)" >&2
