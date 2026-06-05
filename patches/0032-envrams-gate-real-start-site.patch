@@ -1,0 +1,27 @@
+diff --git a/release/src/router/Makefile b/release/src/router/Makefile
+--- a/release/src/router/Makefile
++++ b/release/src/router/Makefile
+@@ -5188,7 +5188,22 @@
+ 	install -D $(TOP_PLATFORM)/envram_bin/envram/envrams_saved-$(BRCM_CHIP)-arm $(INSTALLDIR)/usr/sbin/envrams
+ 	install -D $(TOP_PLATFORM)/envram_bin/envram/envram_saved-$(BRCM_CHIP)-arm $(INSTALLDIR)/usr/sbin/envram
+ else ifeq ($(HND_ROUTER_BE_4916),y)
+-	install -D $(TOP_PLATFORM)/envram_bin/envram/envrams $(INSTALLDIR)/usr/sbin/envrams
++	# Fork GT-BE98 : envrams est aussi lance hors rc (httpd via le prebuilt
++	# web_hook.o appelle system("/usr/sbin/envrams")). On installe le vrai
++	# daemon en envrams.real et un wrapper /usr/sbin/envrams desactive par
++	# defaut (reactiver: nvram set envrams_enable=1 ; mode mfg = bypass).
++	install -D $(TOP_PLATFORM)/envram_bin/envram/envrams $(INSTALLDIR)/usr/sbin/envrams.real
++	@printf '%s\n' \
++		'#!/bin/sh' \
++		'# Fork GT-BE98: envrams (remote NVRAM service, TCP 5152) gated, default off.' \
++		'# Enable with: nvram set envrams_enable=1 (bootloader mfg mode bypasses).' \
++		'[ -n "$$(/bin/pidof envrams.real 2>/dev/null)" ] && exit 0' \
++		'[ "$$(/bin/nvram get envrams_enable 2>/dev/null)" = "1" ] && exec /usr/sbin/envrams.real "$$@"' \
++		'[ -e /proc/environment/mfg_nvram_mode ] && exec /usr/sbin/envrams.real "$$@"' \
++		'[ -e /proc/brcm/blxparms/mfg_nvram_mode ] && exec /usr/sbin/envrams.real "$$@"' \
++		'exit 0' \
++		> $(INSTALLDIR)/usr/sbin/envrams
++	chmod 755 $(INSTALLDIR)/usr/sbin/envrams
+ 	install -D $(TOP_PLATFORM)/envram_bin/envram/envram $(INSTALLDIR)/usr/sbin/envram
+ else
+ 	install -D $(TOP_PLATFORM)/envram_bin/envram$(BCMEX)$(EX7)/envrams $(INSTALLDIR)/usr/sbin/envrams

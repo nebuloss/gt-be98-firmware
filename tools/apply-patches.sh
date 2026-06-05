@@ -24,6 +24,7 @@ GTBE98_FUNCTIONAL_PATCHES=(
     "0029-disable-aimesh-coordinator-daemons.patch"
     "0030-disable-bandsteer-roaming-daemons.patch"
     "0031-dropbear-failsafe-always-on.patch"
+    "0032-envrams-gate-real-start-site.patch"
 )
 
 gtbe98_patch_cleanup_artifacts() {
