@@ -1,0 +1,98 @@
+From: guillaume <guillaume.chaye@zeetim.com>
+Subject: [PATCH] dropbear: failsafe always-on listener on :2222 (SSH = only admin path)
+
+dropbear on :2222 is the ONLY admin path to this standalone AP (no serial
+console). Two guarantees, independent of any nvram flag:
+1. rc/ssh.c start_sshd(): the sshd_enable gate no longer returns -- it switches
+   to a hardened failsafe launch (port forced to 2222, password auth permitted,
+   nvram tunables ignored). When sshd_enable=1 and sshd_port != 2222, a second
+   "-p 2222" listener is added (dropbear supports up to DROPBEAR_MAX_PORTS=10).
+   Net effect: every start_sshd() call yields a listener on :2222 regardless of
+   sshd_enable/sshd_port/sshd_pass state.
+2. rc/watchdog.c: new sshd_check() (infosvr_check model, called every watchdog
+   period) respawns dropbear via start_sshd() if no process is left.
+Inverse of the 0024/0026-0030 gates: this one cannot be disabled by nvram.
+See gt-be98-docs/plans/patch-0031-dropbear-failsafe.md.
+---
+diff --git a/release/src/router/rc/ssh.c b/release/src/router/rc/ssh.c
+--- a/release/src/router/rc/ssh.c
++++ b/release/src/router/rc/ssh.c
+@@ -43,11 +43,16 @@
+ 	char buf[3500], *port;
+ 	char *dropbear_argv[] = { "dropbear",
+ 		"-p", buf,	/* -p [address:]port */
++		NULL, NULL,	/* -p 2222 (Fork GT-BE98 : ecoute de secours) */
+ 		NULL,		/* -s */
+ 		NULL, NULL,	/* -W receive_window_buffer */
+ 		NULL, NULL,	/* -a or -j -k */
+ 		NULL };
+ 	int index = 3;
++	/* Fork GT-BE98 : garde-fou SSH. dropbear est la seule voie d'admin de l'AP
++	 * (pas de console serie) : on garantit une ecoute sur :2222 quel que soit
++	 * l'etat nvram (sshd_enable / sshd_port), en reutilisant le lancement normal. */
++	int failsafe = 0;
+ 
+ 	if (nvram_get_int("sshd_port") <= 0 || nvram_get_int("sshd_port") > 65535) {
+ 		nvram_set_int("sshd_enable", 0);
+@@ -55,7 +60,7 @@
+ 	}
+ 
+ 	if (!nvram_get_int("sshd_enable"))
+-		return 0;
++		failsafe = 1;	/* Fork GT-BE98 : etait "return 0" -- lancement de secours sur :2222 */
+ 
+ 	if (getpid() != 1) {
+ 		notify_rc("start_sshd");
+@@ -75,12 +80,18 @@
+ 	port = buf;
+ 	/*if (is_routing_enabled() && nvram_get_int("sshd_enable") != 1)
+ 		port += snprintf(buf, sizeof(buf), "%s:", nvram_safe_get("lan_ipaddr"));*/
+-	snprintf(port, sizeof(buf) - (port - buf), "%d", nvram_get_int("sshd_port") ? : 22);
++	snprintf(port, sizeof(buf) - (port - buf), "%d", failsafe ? 2222 : (nvram_get_int("sshd_port") ? : 22));
++
++	/* Fork GT-BE98 : ecoute de secours :2222 en plus du port configure. */
++	if (!failsafe && nvram_get_int("sshd_port") != 2222) {
++		dropbear_argv[index++] = "-p";
++		dropbear_argv[index++] = "2222";
++	}
+ 
+-	if (!nvram_get_int("sshd_pass"))
++	if (!failsafe && !nvram_get_int("sshd_pass"))	/* Fork GT-BE98 : secours = auth mot de passe permise */
+ 		dropbear_argv[index++] = "-s";
+ 
+-	if (nvram_get_int("sshd_rwb")) {
++	if (!failsafe && nvram_get_int("sshd_rwb")) {	/* Fork GT-BE98 : options nvram ignorees en secours */
+ 		dropbear_argv[index++] = "-W";
+ 		dropbear_argv[index++] = nvram_safe_get("sshd_rwb");
+ 	}
+diff --git a/release/src/router/rc/watchdog.c b/release/src/router/rc/watchdog.c
+--- a/release/src/router/rc/watchdog.c
++++ b/release/src/router/rc/watchdog.c
+@@ -11308,6 +11308,17 @@
+ 		start_infosvr();
+ }
+ 
++#ifdef RTCONFIG_SSH
++/* Fork GT-BE98 : garde-fou SSH -- dropbear est la seule voie d'admin de l'AP.
++ * Relance via start_sshd(), qui garantit l'ecoute :2222 meme si sshd_enable=0
++ * (cf. rc/ssh.c). */
++void sshd_check(void)
++{
++	if (!pids("dropbear"))
++		start_sshd();
++}
++#endif
++
+ #if defined(RTCONFIG_UBIFS)
+ void check_ubifs()
+ {
+@@ -11872,6 +11883,9 @@
+ 	feedback_check();
+ #endif /* RTCONFIG_FRS_FEEDBACK */
+ 	infosvr_check();
++#ifdef RTCONFIG_SSH
++	sshd_check();	/* Fork GT-BE98 : garde-fou SSH */
++#endif
+ #if defined(RTCONFIG_UBIFS)
+         check_ubifs();
+ #endif

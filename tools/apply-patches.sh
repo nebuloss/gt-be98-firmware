@@ -20,6 +20,10 @@ GTBE98_FUNCTIONAL_PATCHES=(
     "0025-mainfh-exclude-ifnames-from-hapd.patch"
     "0026-envrams-disable-by-default.patch"
     "0027-disable-asus-cloud-telemetry.patch"
+    "0028-cfgmnt-disable-by-default.patch"
+    "0029-disable-aimesh-coordinator-daemons.patch"
+    "0030-disable-bandsteer-roaming-daemons.patch"
+    "0031-dropbear-failsafe-always-on.patch"
 )
 
 gtbe98_patch_cleanup_artifacts() {
@@ -150,7 +154,8 @@ gtbe98_warn_missing_functional_patches() {
     echo "  These are catalogued in patches/README.md but not present, so the" >&2
     echo "  firmware will build WITHOUT their runtime hardening (e.g. 0024 leaves" >&2
     echo "  infosvr/UDP 9999 enabled, 0025 leaves the MAINFH BSS in place, 0026" >&2
-    echo "  leaves envrams/TCP 5152 enabled)." >&2
+    echo "  leaves envrams/TCP 5152 enabled, 0028-0030 leave the AiMesh/roaming" >&2
+    echo "  daemons running, 0031 leaves SSH without its always-on :2222 failsafe)." >&2
     echo "  Restore the .patch file(s) and re-run ./build.sh to apply them." >&2
 }
 
