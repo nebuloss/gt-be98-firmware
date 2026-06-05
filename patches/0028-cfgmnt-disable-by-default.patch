@@ -1,0 +1,44 @@
+From: guillaume <guillaume.chaye@zeetim.com>
+Subject: [PATCH] cfg_server: retire by default on standalone AP (nvram cfgmnt_enable)
+
+cfg_server (the AiMesh/Guest-Pro coordinator) is NOT load-bearing for WiFi on a
+standalone AP (verified live: killall cfg_server leaves all 4 radios beaconing and
+clients associated; the hostapd-conf generator and sync_apgx_to_wlunit live in rc).
+Gate every cfg_server launch on a new unused nvram flag cfgmnt_enable (default off,
+0024/0026 model). start_cfgsync() is the single launch funnel; cfgsync_check() gate
+stops the watchdog respawn. Re-enable: nvram set cfgmnt_enable=1 ; nvram commit.
+See gt-be98-docs/plans/patch-0028-retire-cfg_server.md.
+---
+diff --git a/release/src/router/rc/services.c b/release/src/router/rc/services.c
+--- a/release/src/router/rc/services.c
++++ b/release/src/router/rc/services.c
+@@ -25889,6 +25889,15 @@
+ 	pid_t pid;
+ 	int ret = 0;
+ 
++	/* Fork GT-BE98 : cfg_server (coordinateur AiMesh/Guest-Pro) retire par defaut.
++	 * Sur AP autonome il n'est PAS sur le chemin WiFi : rc/restart_wireless genere
++	 * /tmp/wlX_hapd.conf (hostapd_config_be.o lie a rc) + lance hostapd, et l'allocateur
++	 * sync_apgx_to_wlunit vient de libcfgmnt liee a rc -- pas du demon (verifie live :
++	 * killall cfg_server laisse les 4 radios en service). netctl/webui possedent l'apply
++	 * et le statut. Reactiver : nvram set cfgmnt_enable=1 ; nvram commit. */
++	if (!nvram_get_int("cfgmnt_enable"))
++		return 0;
++
+ #ifdef RTCONFIG_MASTER_DET
+ 	if (nvram_match("cfg_master", "1") && (is_router_mode() || access_point_mode()))
+ #else
+diff --git a/release/src/router/rc/watchdog.c b/release/src/router/rc/watchdog.c
+--- a/release/src/router/rc/watchdog.c
++++ b/release/src/router/rc/watchdog.c
+@@ -9933,6 +9933,10 @@
+ 	char value[sizeof("9999999")];
+ 	int pid_by_file = 0, pid_by_name = 0;
+ 
++	/* Fork GT-BE98 : ne pas relancer cfg_server s'il est retire (cf. start_cfgsync). */
++	if (!nvram_get_int("cfgmnt_enable"))
++		return;
++
+ 	memset(reboot, 0, sizeof("255"));
+ 	memset(upgrade, 0, sizeof("255"));
+ 	f_read_string("/tmp/reboot", reboot, sizeof(reboot));
