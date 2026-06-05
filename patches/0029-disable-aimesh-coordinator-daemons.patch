@@ -1,0 +1,58 @@
+diff --git a/release/src/router/rc/services.c b/release/src/router/rc/services.c
+--- a/release/src/router/rc/services.c
++++ b/release/src/router/rc/services.c
+@@ -4273,6 +4273,13 @@
+ 	pid_t pid = 0;
+ 	int ret = 0;
+ 
++	/* Fork GT-BE98 : wlc_nt (Notification Center, relais d'evenements WiFi vers
++	 * le cloud ASUS) desactive par defaut sur AP autonome. Verifie live (killall
++	 * wlc_nt) : 4 radios isup, bridges/clients/eapd/hostapd intacts, pas de respawn.
++	 * Reactiver : nvram set wlc_nt_enable=1 ; nvram commit. */
++	if (!nvram_get_int("wlc_nt_enable"))
++		return 0;
++
+ #ifdef CONFIG_BCMWL5
+ #ifndef RTCONFIG_BCM_MFG
+ 	if (factory_debug())
+@@ -22553,6 +22560,13 @@
+ 	char *amas_lanctrl_argv[] = {"amas_lanctrl", NULL};
+ 	pid_t pid;
+ 
++	/* Fork GT-BE98 : amas_lanctrl (controleur LAN/topologie AiMesh) desactive par
++	 * defaut sur AP autonome (re_mode=0, pas de mesh). Verifie live (killall
++	 * amas_lanctrl) : aucun respawn, WiFi/bridges/VLAN intacts.
++	 * Reactiver : nvram set amas_lanctrl_enable=1 ; nvram commit. */
++	if (!nvram_get_int("amas_lanctrl_enable"))
++		return;
++
+ 	if (!(getAmasSupportMode() & (AMAS_CAP | AMAS_RE))) {
+ 		_dprintf("not support CAP or RE, don't start_amas_lanctrl\n");
+ 		return;
+@@ -22831,6 +22845,12 @@
+ 
+ 	init_x_Setting = nvram_get_int("x_Setting");
+ 
++	/* Fork GT-BE98 : amas_lldpd (decouverte de voisins LLDP pour AiMesh) desactive
++	 * par defaut sur AP autonome. Verifie live (killall lldpd) : aucun respawn,
++	 * WiFi/bridges intacts. Reactiver : nvram set amas_lldpd_enable=1 ; nvram commit. */
++	if (!nvram_get_int("amas_lldpd_enable"))
++		return;
++
+ #ifdef RTCONFIG_BCM_MFG
+ 	return;
+ #endif
+@@ -26025,6 +26045,13 @@
+ 	char *cmd[] = {"amas_portstatus", NULL};
+ 	pid_t pid;
+ 
++	/* Fork GT-BE98 : amas_portstatus (rapport d'etat des ports pour AiMesh)
++	 * desactive par defaut sur AP autonome. Verifie live (killall amas_portstatus) :
++	 * aucun respawn, WiFi/bridges intacts.
++	 * Reactiver : nvram set amas_portstatus_enable=1 ; nvram commit. */
++	if (!nvram_get_int("amas_portstatus_enable"))
++		return;
++
+ 	stop_amas_portstatus();
+ 
+ 	_eval(cmd, NULL, 0, &pid);

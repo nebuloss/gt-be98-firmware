@@ -1,0 +1,31 @@
+diff --git a/release/src/router/rc/services.c b/release/src/router/rc/services.c
+--- a/release/src/router/rc/services.c
++++ b/release/src/router/rc/services.c
+@@ -23379,6 +23379,12 @@
+ {
+ 	int ret = 0;
+ 
++	/* Fork GT-BE98 : bsd (band-steering daemon) desactive par defaut sur AP
++	 * autonome ; le pilotage de bande est assure par le webui (802.11v). Non lance
++	 * en stock (smart_connect_x=0). Reactiver : nvram set bsd_enable=1 ; nvram commit. */
++	if (!nvram_get_int("bsd_enable"))
++		return -1;
++
+ 	stop_bsd();
+ 
+ #ifdef RTCONFIG_FAST_ACL_SET
+@@ -24111,6 +24117,14 @@
+ 	char tmp[32];
+ 	pid_t pid;
+ 	int i;
++
++	/* Fork GT-BE98 : roamast (assistance de roaming/forced-roaming) desactive par
++	 * defaut sur AP autonome ; le roaming est gere par le webui (802.11v/k). Non
++	 * lance en stock (roamast_disable=1). Ce garde-fou couvre aussi les variantes
++	 * STA_AP_BAND_BIND/FORCE_ROAMING qui ignorent roamast_disable.
++	 * Reactiver : nvram set roamast_enable=1 ; nvram commit. */
++	if (!nvram_get_int("roamast_enable"))
++		return;
+ #ifdef RTCONFIG_BCM_MFG
+ 	return;
+ #endif
