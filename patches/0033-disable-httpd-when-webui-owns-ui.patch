@@ -1,0 +1,51 @@
+From: guillaume <guillaume.chaye@zeetim.com>
+Subject: [PATCH] httpd: retire ASUS web UI by default on standalone AP (nvram gtbe98_httpd)
+
+Phase 2 (rc-drain): the open webui (go/lighttpd under /usr/br, rail S29/S30br-webui)
+owns the management UI. Gate the ASUS httpd starter AND its watchdog respawn on a new
+unused nvram flag gtbe98_httpd (default off, 0024/0027/0028 early-return model).
+
+CRITICAL flash-wear hazard fixed at source: httpd_check() in rc/watchdog.c, when the
+httpd binary is missing, runs nvram_set("last_httpd_handle_request",...) +
+nvram_set(...fromapp...) + nvram_commit() EVERY watchdog period (watchdog.c:8018-8020).
+Naive removal of the ASUS UI binary (rootfs-remove) without this gate would grind NAND
+flash on every watchdog tick. The gate sits ABOVE that block so the respawn/commit path
+is never entered. Re-enable: nvram set gtbe98_httpd=1 ; nvram commit.
+See gt-be98-docs/device/plans/patch-0033-0034-notes.md (br-0047/br-0048 webui slices).
+---
+diff --git a/release/src/router/rc/services.c b/release/src/router/rc/services.c
+--- a/release/src/router/rc/services.c
++++ b/release/src/router/rc/services.c
+@@ -7280,6 +7280,14 @@
+ 	char *httpd_dir;
+ #endif
+ 
++	/* Fork GT-BE98 : httpd (UI web ASUS, :80) desactive par defaut -- le webui
++	 * (go/lighttpd sous /usr/br, rail S29) possede l'interface d'administration.
++	 * Sur AP autonome rc n'a pas besoin de l'UI ASUS. Garde placee AVANT le relais
++	 * notify_rc pour ne pas non plus re-declencher start_httpd via le chemin PID1.
++	 * Reactiver : nvram set gtbe98_httpd=1 ; nvram commit. */
++	if (!nvram_get_int("gtbe98_httpd"))
++		return;
++
+ 	if (getpid() != 1) {
+ 		notify_rc("start_httpd");
+ 		return;
+diff --git a/release/src/router/rc/watchdog.c b/release/src/router/rc/watchdog.c
+--- a/release/src/router/rc/watchdog.c
++++ b/release/src/router/rc/watchdog.c
+@@ -7998,6 +7998,14 @@
+ 
+ void httpd_check()
+ {
++	/* Fork GT-BE98 : ne pas relancer httpd s'il est desactive (cf. start_httpd).
++	 * CRITIQUE : sans cette garde, quand le binaire httpd est absent ce check
++	 * fait nvram_set()+nvram_commit() (lignes "last_httpd_handle_request") A CHAQUE
++	 * periode de watchdog -> ecriture NAND repetee (usure flash). La garde DOIT
++	 * rester au-dessus de ce bloc. Reactiver : nvram set gtbe98_httpd=1 ; nvram commit. */
++	if (!nvram_get_int("gtbe98_httpd"))
++		return;
++
+ 	if (nvram_get_int("wait_httpd")) {
+ 		nvram_set_int("wait_httpd", 0);
+ 		return;

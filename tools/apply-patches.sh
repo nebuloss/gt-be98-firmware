@@ -25,6 +25,8 @@ GTBE98_FUNCTIONAL_PATCHES=(
     "0030-disable-bandsteer-roaming-daemons.patch"
     "0031-dropbear-failsafe-always-on.patch"
     "0032-envrams-gate-real-start-site.patch"
+    "0033-disable-httpd-when-webui-owns-ui.patch"
+    "0034-disable-sched_daemon.patch"
 )
 
 gtbe98_patch_cleanup_artifacts() {

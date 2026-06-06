@@ -1,0 +1,49 @@
+From: guillaume <guillaume.chaye@zeetim.com>
+Subject: [PATCH] sched_daemon: retire ASUS task scheduler by default on standalone AP (nvram gtbe98_sched_daemon)
+
+Phase 2 (rc-drain): sched_daemon is not load-bearing on a standalone AP (scheduling we
+care about moves to webui/cron). Gate both the launch funnel start_sched_daemon()
+(rc/services.c) and its watchdog respawn sched_daemon_check() (rc/watchdog.c) on a new
+unused nvram flag gtbe98_sched_daemon (default off, 0024/0028 early-return model).
+
+The watchdog respawn is UNGATED in stock (sched_daemon_check just re-execs on
+!pids("sched_daemon")), so removing the binary without this gate would loop a failed
+respawn every watchdog period. Re-enable: nvram set gtbe98_sched_daemon=1 ; nvram commit.
+See gt-be98-docs/device/plans/patch-0033-0034-notes.md (br-0047/br-0048 webui slices).
+---
+diff --git a/release/src/router/rc/services.c b/release/src/router/rc/services.c
+--- a/release/src/router/rc/services.c
++++ b/release/src/router/rc/services.c
+@@ -15181,6 +15181,15 @@
+ #ifdef RTCONFIG_BCM_MFG
+ 	return;
+ #endif
++	/* Fork GT-BE98 : sched_daemon (ordonnanceur de taches ASUS : reboot/wifi sched,
++	 * led/aura, telemetrie temporisee) desactive par defaut sur AP autonome -- les
++	 * planifications utiles passent par le webui/cron. Garde placee AVANT le relais
++	 * notify_rc pour couvrir aussi le chemin PID1. Son respawn watchdog
++	 * (sched_daemon_check) est NON gate en stock, d'ou la garde jumelle ci-dessous.
++	 * Reactiver : nvram set gtbe98_sched_daemon=1 ; nvram commit. */
++	if (!nvram_get_int("gtbe98_sched_daemon"))
++		return;
++
+ 	if(getpid()!=1) {
+ 		notify_rc("start_sched_daemon");
+ 		return;
+diff --git a/release/src/router/rc/watchdog.c b/release/src/router/rc/watchdog.c
+--- a/release/src/router/rc/watchdog.c
++++ b/release/src/router/rc/watchdog.c
+@@ -11107,6 +11107,13 @@
+ #if defined(RTCONFIG_SCHED_DAEMON)
+ static void sched_daemon_check()
+ {
++	/* Fork GT-BE98 : ne pas relancer sched_daemon s'il est desactive (cf.
++	 * start_sched_daemon). Ce respawn est NON gate en stock -> sans cette garde,
++	 * retirer le binaire produirait une boucle d'echec de relance a chaque periode
++	 * de watchdog. Reactiver : nvram set gtbe98_sched_daemon=1 ; nvram commit. */
++	if (!nvram_get_int("gtbe98_sched_daemon"))
++		return;
++
+ 	if (!pids("sched_daemon"))
+ 		start_sched_daemon();
+ }
