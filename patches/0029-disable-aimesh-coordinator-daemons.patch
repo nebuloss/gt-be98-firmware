@@ -1,10 +1,11 @@
 diff --git a/release/src/router/rc/services.c b/release/src/router/rc/services.c
 --- a/release/src/router/rc/services.c
 +++ b/release/src/router/rc/services.c
-@@ -4273,6 +4273,13 @@
+@@ -4272,7 +4272,14 @@ int start_wlc_nt(void)
+ 	char *ev_argv[] = {"/usr/sbin/wlc_nt", NULL};
  	pid_t pid = 0;
  	int ret = 0;
- 
+
 +	/* Fork GT-BE98 : wlc_nt (Notification Center, relais d'evenements WiFi vers
 +	 * le cloud ASUS) desactive par defaut sur AP autonome. Verifie live (killall
 +	 * wlc_nt) : 4 radios isup, bridges/clients/eapd/hostapd intacts, pas de respawn.
