@@ -1,0 +1,50 @@
+From: guillaume <guillaume.chaye@zeetim.com>
+Subject: [PATCH] watchdog: gate debug_monitor/hostapd respawn so webui-go owns wifi (nvram gtbe98_wifi_extsup)
+
+Companion to webui-go EnsureRadio (sole-supervisor wifi). The open controller can
+bring up the full wifi userspace via wl-ioctls + from-source hostapd (radio config
+persists in the driver, never re-applied by wlconf). The one thing that races a
+controller-owned hostapd is the stock userspace supervisor: debug_monitor
+(dhd_monitor) respawns a killed primary hostapd in ~10s (hostapd only, never wlconf).
+
+On the BE_4916 platform (GT-BE98) the SINGLE rc site that resurrects that supervisor
+is the watchdog() tick block guarded by RTCONFIG_HND_ROUTER_BE_4916: when wlready and
+debug_monitor is gone it runs start_dhd_monitor() then SIGUSR2 hostapd (re-attach
+handshake). The other hostapd-touching watchdog code (wpasupp_hapd_check) is gated by
+RPBE58/RTBE58_GO + client_mode and is compiled out on GT-BE98 — irrelevant here.
+
+Gate that block on a new unused nvram flag gtbe98_wifi_extsup (default off, 0024/0028/
+0033 early-return model). Flag unset/0 => stock: watchdog keeps debug_monitor alive and
+it respawns hostapd (default, safe, behaviour unchanged). Flag=1 => watchdog does NOT
+relaunch debug_monitor, so a controller that has taken over (killed debug_monitor) stays
+the SOLE hostapd supervisor — webui-go EnsureRadio owns the radios. The flag short-
+circuits the existing condition, so with the flag absent the stock code path is taken
+verbatim (no behavioural change). It is NOT a function-level return: this block lives
+inside the long-running watchdog(int sig) tick, so a return would skip the rest of the
+tick — the gate folds into the block's own condition instead.
+
+Re-enable the stock supervisor: nvram unset gtbe98_wifi_extsup ; nvram commit.
+See gt-be98-docs (OPEN-RADIO-INIT-RECIPE; wl-ioctl-rc-boundary memory).
+---
+diff --git a/release/src/router/rc/watchdog.c b/release/src/router/rc/watchdog.c
+--- a/release/src/router/rc/watchdog.c
++++ b/release/src/router/rc/watchdog.c
+@@ -11643,7 +11643,17 @@
+ 	}
+
+ #ifdef RTCONFIG_HND_ROUTER_BE_4916
+-	if (nvram_get_int("wlready") && !pids("debug_monitor")) {
++	/* Fork GT-BE98 : superviseur wifi externe (webui-go EnsureRadio) possede
++	 * hostapd. debug_monitor (dhd_monitor) est le re-spawn ~10s d'un hostapd
++	 * primaire tue (hostapd seul, jamais wlconf -- la config radio wl-ioctl
++	 * persiste). Ce bloc est le SEUL endroit ou le watchdog ressuscite
++	 * debug_monitor (et resynchronise hostapd via SIGUSR2) sur la plateforme
++	 * BE_4916. Quand gtbe98_wifi_extsup=1, ne pas relancer debug_monitor : le
++	 * controleur webui-go reste l'unique superviseur hostapd (sole-supervisor).
++	 * Defaut off (flag absent/0) => comportement stock inchange.
++	 * Rendre le superviseur stock : nvram unset gtbe98_wifi_extsup ; nvram commit. */
++	if (!nvram_get_int("gtbe98_wifi_extsup") &&
++	    nvram_get_int("wlready") && !pids("debug_monitor")) {
+ 		dm_count = (dm_count + 1) % 2;
+ 		if (!dm_count) {
+ 			start_dhd_monitor();
