@@ -28,6 +28,7 @@ GTBE98_FUNCTIONAL_PATCHES=(
     "0033-disable-httpd-when-webui-owns-ui.patch"
     "0034-disable-sched_daemon.patch"
     "0035-watchdog-gate-hostapd-debug_monitor-respawn.patch"
+    "0036-hostapd-enable-ieee80211ax.patch"
 )
 
 gtbe98_patch_cleanup_artifacts() {

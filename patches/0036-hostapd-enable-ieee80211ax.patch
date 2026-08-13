@@ -1,0 +1,46 @@
+From: guillaume <guillaume.chaye@zeetim.com>
+Subject: [PATCH] hostapd: enable CONFIG_IEEE80211AX in brcm.config (HE / Wi-Fi 6)
+
+Le hostapd vendor Broadcom v2.10 (impl103) est construit depuis
+components/opensource/router_tools/hostapd via router/Makefile (cible
+`hostapd`), qui copie `hostapd/brcm.config` -> `hostapd/.config` avant de
+recurser. brcm.config est donc LA source de verite de la config hostapd du
+firmware.
+
+Stock, brcm.config n'a AUCUNE ligne CONFIG_IEEE80211AX (ni commentee, ni
+active) — alors que le symbole est parfaitement supporte dans cet arbre :
+  - hostapd/defconfig:161  #CONFIG_IEEE80211AX=y
+  - hostapd/Makefile:391-393  ajoute -DCONFIG_IEEE80211AX et ../src/ap/ieee802_11_he.o
+  - src/ap/ieee802_11_he.c present
+Sans le symbole, ieee802_11_he.o n'est pas lie et hostapd REJETTE au parsing
+`ieee80211ax=1` ainsi que tous les mots-cles he_* de hostapd.conf
+(he_oper_chwidth, he_su_beamformer, he_bss_color, he_mu_edca_*, ...). Un AP
+6 GHz / BE-AX pilote depuis le userspace ouvert ne peut alors pas etre
+configure en HE par le fichier de conf.
+
+Ce patch ajoute la seule ligne CONFIG_IEEE80211AX=y (place a l'endroit
+canonique de defconfig, juste apres CONFIG_IEEE80211AC). Rien d'autre n'est
+touche : pas de nouvelle dependance, pas de flag nvram, pas de changement de
+comportement par defaut cote runtime — hostapd ne fait du HE que si la conf le
+demande explicitement (ieee80211ax=1). Effet mesure : binaire strippe
+1 472 336 o -> ~1 507 000 o (ieee802_11_he.o + parsing he_*).
+
+ATTENTION : ce patch casse volontairement la reproductibilite bit-a-bit avec
+le hostapd d'usine (sha256 7453000858a87738146fa0898d75036195a09e965e9b6f8a12e39ec0c7aede2d).
+Retirer le patch et rebuilder restaure le binaire d'origine.
+---
+diff --git a/release/src-rt-5.04behnd.4916/bcmdrivers/broadcom/net/wl/impl103/main/components/opensource/router_tools/hostapd/hostapd/brcm.config b/release/src-rt-5.04behnd.4916/bcmdrivers/broadcom/net/wl/impl103/main/components/opensource/router_tools/hostapd/hostapd/brcm.config
+--- a/release/src-rt-5.04behnd.4916/bcmdrivers/broadcom/net/wl/impl103/main/components/opensource/router_tools/hostapd/hostapd/brcm.config
++++ b/release/src-rt-5.04behnd.4916/bcmdrivers/broadcom/net/wl/impl103/main/components/opensource/router_tools/hostapd/hostapd/brcm.config
+@@ -222,6 +222,11 @@
+ # IEEE 802.11ac (Very High Throughput) support
+ #CONFIG_IEEE80211AC=y
+ 
++# IEEE 802.11ax HE support
++# Fork GT-BE98 : active (stock: absent) -- sans ce symbole hostapd ne compile
++# pas ieee802_11_he.o et rejette ieee80211ax=1 / he_* dans hostapd.conf.
++CONFIG_IEEE80211AX=y
++
+ # Remove debugging code that is printing out debug messages to stdout.
+ # This can be used to reduce the size of the hostapd considerably if debugging
+ # code is not needed.
