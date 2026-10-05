@@ -1,0 +1,31 @@
+#!/bin/sh
+#
+# udhcpc hook for usbnet.sh: set the address and record the lease.
+# Routing is handled by usbnet.sh.
+
+LEASE=/tmp/usbnet/lease
+
+case "$1" in
+	deconfig)
+		ip addr flush dev "$interface"
+		rm -f "$LEASE"
+		;;
+
+	bound|renew)
+		ip addr flush dev "$interface"
+		ip addr add "$ip/$mask" dev "$interface"
+
+		# Adding the address creates a LAN route in the main table that would
+		# compete with br0's. Remove it: usbnet.sh routes USB in its own table.
+		ip route del "$(ip route show dev "$interface" proto kernel | cut -d' ' -f1)" \
+			dev "$interface" proto kernel 2>/dev/null
+
+		cat >"$LEASE.new" <<-EOF
+			iface=$interface
+			ip=$ip
+			mask=$mask
+			gateway=${router%% *}
+		EOF
+		mv "$LEASE.new" "$LEASE"
+		;;
+esac

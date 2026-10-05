@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# /jffs/scripts/init-start - run early at boot by the ASUS rc.
+# Starts the USB Ethernet management link (see /data/usbnet/usbnet.sh).
+
+if [ -x /data/usbnet/usbnet.sh ]; then
+	/data/usbnet/usbnet.sh start >/dev/null 2>&1 &
+fi
