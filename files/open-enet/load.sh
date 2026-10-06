@@ -4,7 +4,7 @@
 # /rom/etc/init.d/bcm-base-drivers.sh when /data/open_enet exists, in place of
 # the stock datapath (bdmf/rdpa/bcm_enet), BEFORE rc builds br0.
 #
-# v4 loads bcm_mpm + the open driver here, synchronously, with ifprefix=eth:
+# v4 loads bcm_mpm (+ bcm_bpm, for wl) + the open driver here, synchronously, with ifprefix=eth:
 # the open port is "eth0" when rc runs, so nvram lan_ifnames and the VLAN
 # bridges (eth0.N -> brN) pick it up unchanged - no re-homing. The USB
 # management NIC is loaded AFTER the driver and renamed mgmtN, never bridged.
@@ -81,6 +81,19 @@ grep -q "parm=ifprefix:" "$KO" || [ "$IFPREFIX" = rnr ] || \
 # (the stock path would load it too)
 grep -q '^bcm_mpm ' /proc/modules || insmod "$MPM" 2>> "$BC"
 grep -q '^bcm_mpm ' /proc/modules || decline "bcm_mpm did not load"
+# BPM after the MPM, as stock bcm-base-drivers.sh does: wl.ko (NIC mode)
+# takes its RX buffers through the kernel gbpm hooks, which stay the
+# gbpm_*_stub functions until bcm_bpm binds them. Without it wl0 delivers
+# 0 RX (rxnobuf climbs) and WPA2 clients never finish the 4-way handshake
+# (silicon 2026-10-06). Needs only bcm_mpm + kernel gbpm, no rdpa; WiFi-only,
+# so a failure is logged, not a decline.
+BPM=$M/extra/bcm_bpm.ko
+if [ -f "$BPM" ]; then
+	grep -q '^bcm_bpm ' /proc/modules || insmod "$BPM" 2>> "$BC"
+	grep -q '^bcm_bpm ' /proc/modules || log "WARN: bcm_bpm did not load - wl gets no RX buffers"
+else
+	log "WARN: no $BPM - wl gets no RX buffers"
+fi
 echo $((tries + 1)) > "$L/tries"; sync
 
 # ---- 1. watchdog petter, deadman, autohold, dmesg breadcrumbs -----------
