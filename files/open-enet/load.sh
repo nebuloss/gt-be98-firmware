@@ -129,12 +129,23 @@ if [ $RET = 0 ] && [ -e "$NODE/driver" ] && [ -d /sys/class/net/${IFPREFIX}0 ]; 
 	# WiFi beside the open driver (open-ethernet driver/compat, note 182):
 	# the stock wl stack only needs enet_init_done + WFD stubs from us
 	if [ "$WIFI" != 0 ] && [ -f $M/extra/bcm4916_compat.ko ]; then
-		for k in bcmlibs bcmmcast bcm4916_compat bcm_pcie_hcd emf igs; do
+		for k in bcmlibs bcmmcast bcm4916_compat bcm_pcie_hcd; do
 			grep -q "^$k " /proc/modules || insmod $M/extra/$k.ko >> "$BC" 2>&1
 		done
-		grep -q '^wl ' /proc/modules ||
+		# wl needs hnd/wlshared/cfg80211/emf/igs, which rc loads later in
+		# boot: wait for them in the background, then load wl (note 182)
+		( t=0
+		  while [ $t -lt 180 ]; do
+			grep -q '^hnd ' /proc/modules && grep -q '^wlshared ' /proc/modules &&
+				grep -q '^cfg80211 ' /proc/modules && break
+			sleep 2; t=$((t + 2))
+		  done
+		  for k in emf igs; do
+			grep -q "^$k " /proc/modules || insmod $M/extra/$k.ko >> "$BC" 2>&1
+		  done
+		  grep -q '^wl ' /proc/modules ||
 			insmod $M/extra/wl.ko intf_name=wl%d instance_base=0 >> "$BC" 2>&1
-		log "wifi: $(ls /sys/class/net | grep '^wl[0-9]$' | tr '\n' ' ')"
+		  log "wifi: $(ls /sys/class/net | grep '^wl[0-9]$' | tr '\n' ' ') (after ${t}s)" ) &
 	fi
 else
 	log "open driver FAILED (insmod ret=$RET) after touching the Runner -> v3 lifeline mode"
