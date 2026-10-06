@@ -87,7 +87,9 @@ awk -v guard="$SRC/bcm-base-drivers.guard" '
 	END { if (!done) exit 3 }' "$F" > "$W/bbd.sh" || die "no start) label in $F"
 cat "$W/bbd.sh" > "$F"
 g=$(grep -n 'open-ethernet hook v4' "$F" | cut -d: -f1)
-i=$(grep -n '^[^#]*insmod' "$F" | head -1 | cut -d: -f1)
+# first insmod executed under start) - the helper functions above it do not count
+st=$(awk '/^[ \t]*start\)[ \t]*$/ { print NR; exit }' "$F")
+i=$(awk -v s="$st" 'NR > s && /^[^#]*insmod/ { print NR; exit }' "$F")
 [ -n "$g" ] && [ -n "$i" ] && [ "$g" -lt "$i" ] || die "guard not before the first insmod"
 [ "$(grep -c 'open-ethernet hook v4' "$F")" = 1 ] || die "guard present more than once"
 
