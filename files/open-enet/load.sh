@@ -44,7 +44,7 @@ mkdir -p "$L"
 [ -f "$BC" ] && mv -f "$BC" "$BC.prev"
 log() { echo "$(cut -d. -f1 /proc/uptime 2>/dev/null)s $*" >> "$BC"; sync; }
 
-PORTS=0x20; IFPREFIX=eth; PARAMS=""; MAX_TRIES=2; DEADMAN=900; AUTOHOLD=0
+PORTS=0x20; IFPREFIX=eth; WIFI=1; PARAMS=""; MAX_TRIES=2; DEADMAN=900; AUTOHOLD=0
 LIFELINE_IP=""
 [ -f "$L/open-enet.conf" ] && . "$L/open-enet.conf"
 
@@ -126,6 +126,16 @@ if [ $RET = 0 ] && [ -e "$NODE/driver" ] && [ -d /sys/class/net/${IFPREFIX}0 ]; 
 	ip link set ${IFPREFIX}0 up
 	OPEN=$(ls /sys/class/net | grep "^$IFPREFIX[0-9]$" | tr '\n' ' ')
 	log "open driver UP: $OPEN"
+	# WiFi beside the open driver (open-ethernet driver/compat, note 182):
+	# the stock wl stack only needs enet_init_done + WFD stubs from us
+	if [ "$WIFI" != 0 ] && [ -f $M/extra/bcm4916_compat.ko ]; then
+		for k in bcmlibs bcmmcast bcm4916_compat bcm_pcie_hcd emf igs; do
+			grep -q "^$k " /proc/modules || insmod $M/extra/$k.ko >> "$BC" 2>&1
+		done
+		grep -q '^wl ' /proc/modules ||
+			insmod $M/extra/wl.ko intf_name=wl%d instance_base=0 >> "$BC" 2>&1
+		log "wifi: $(ls /sys/class/net | grep '^wl[0-9]$' | tr '\n' ' ')"
+	fi
 else
 	log "open driver FAILED (insmod ret=$RET) after touching the Runner -> v3 lifeline mode"
 fi

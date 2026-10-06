@@ -26,6 +26,7 @@
 #   $OE_PAYLOAD/bcm4916-runner.ko             built against THIS image's kernel
 #   $OE_PAYLOAD/bcm4916-runner-microcode.bin  RFW1 container (required)
 #   $OE_PAYLOAD/merlin16-shortfin.bin         10G serdes uC blob (optional)
+#   $OE_PAYLOAD/bcm4916_compat.ko             WiFi beside the open driver (optional)
 # OE_PAYLOAD defaults to <repo>/open-enet-payload.
 set -euo pipefail
 
@@ -99,6 +100,7 @@ mkdir -p "$R/usr/lib/open-enet" "$R/lib/firmware/brcm"
 install -m 0755 "$SRC/load.sh" "$R/usr/lib/open-enet/load.sh"
 install -m 0644 "$PAY/bcm4916-runner.ko" "$MD/bcm4916-runner.ko"
 install -m 0644 "$PAY/bcm4916-runner-microcode.bin" "$R/lib/firmware/brcm/"
+[ -f "$PAY/bcm4916_compat.ko" ] && install -m 0644 "$PAY/bcm4916_compat.ko" "$MD/bcm4916_compat.ko"
 if [ -f "$PAY/merlin16-shortfin.bin" ]; then
 	install -m 0644 "$PAY/merlin16-shortfin.bin" "$R/lib/firmware/brcm/"
 else
