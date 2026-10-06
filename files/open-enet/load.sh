@@ -1,5 +1,5 @@
 #!/bin/sh
-# /usr/lib/open-enet/load.sh v4 - boot hook of the open BCM4916 Ethernet driver
+# /usr/lib/open-enet/load.sh v5 - boot hook of the open BCM4916 Ethernet driver
 # (github.com/nebuloss/gt-be98-open-ethernet). Called by the guard in
 # /rom/etc/init.d/bcm-base-drivers.sh when /data/open_enet exists, in place of
 # the stock datapath (bdmf/rdpa/bcm_enet), BEFORE rc builds br0.
@@ -29,6 +29,8 @@
 #
 # Tunables in /data/open-enet/open-enet.conf (sourced, all optional):
 #   PORTS=0x20 IFPREFIX=eth PARAMS="" MAX_TRIES=2 DEADMAN=900 AUTOHOLD=0
+#   WFD_PARAMS="" (bcm4916_wfd.ko; WiFi offload also needs PARAMS with
+#   "wlan_rings=1 fc_wlan=1" for the runner, both default 0)
 #   LIFELINE_IP=a.b.c.d/nn  (static address + dropbear on the USB NIC)
 # Overrides on /data (no reflash): /data/open-enet/load-override.sh (whole
 # script), /data/open-enet/bcm4916-runner.ko, /data/open-enet/fw/brcm/*.
@@ -44,7 +46,7 @@ mkdir -p "$L"
 [ -f "$BC" ] && mv -f "$BC" "$BC.prev"
 log() { echo "$(cut -d. -f1 /proc/uptime 2>/dev/null)s $*" >> "$BC"; sync; }
 
-PORTS=0x20; IFPREFIX=eth; WIFI=1; PARAMS=""; MAX_TRIES=2; DEADMAN=900; AUTOHOLD=0
+PORTS=0x20; IFPREFIX=eth; WIFI=1; PARAMS=""; WFD_PARAMS=""; MAX_TRIES=2; DEADMAN=900; AUTOHOLD=0
 LIFELINE_IP=""
 [ -f "$L/open-enet.conf" ] && . "$L/open-enet.conf"
 
@@ -52,7 +54,7 @@ KO=$M/extra/bcm4916-runner.ko
 [ -f "$L/bcm4916-runner.ko" ] && KO=$L/bcm4916-runner.ko
 MPM=$M/extra/bcm_mpm.ko
 UC=brcm/bcm4916-runner-microcode.bin
-log "=== load.sh v4: ko=$KO ports=$PORTS ifprefix=$IFPREFIX params='$PARAMS' ==="
+log "=== load.sh v5: ko=$KO ports=$PORTS ifprefix=$IFPREFIX params='$PARAMS' ==="
 
 decline() {
 	log "DECLINED ($*): Runner untouched -> stock datapath"
@@ -127,10 +129,17 @@ if [ $RET = 0 ] && [ -e "$NODE/driver" ] && [ -d /sys/class/net/${IFPREFIX}0 ]; 
 	OPEN=$(ls /sys/class/net | grep "^$IFPREFIX[0-9]$" | tr '\n' ' ')
 	log "open driver UP: $OPEN"
 	# WiFi beside the open driver (open-ethernet driver/compat, note 182):
-	# the stock wl stack only needs enet_init_done + WFD stubs from us
+	# compat gives bcm_pcie_hcd enet_init_done; the WFD symbols wl takes
+	# come from the open WFD (driver/wfd, bcm4916_wfd.ko), which must be in
+	# before wl. Without runner wlan_rings=1 its wfd_bind answers
+	# WFD_NOT_SUPPORTED and wl keeps its software path.
 	if [ "$WIFI" != 0 ] && [ -f $M/extra/bcm4916_compat.ko ]; then
-		for k in bcmlibs bcmmcast bcm4916_compat bcm_pcie_hcd; do
-			grep -q "^$k " /proc/modules || insmod $M/extra/$k.ko >> "$BC" 2>&1
+		[ -f $M/extra/bcm4916_wfd.ko ] ||
+			log "WARN: no bcm4916_wfd.ko - wl will not load (no WFD symbols)"
+		for k in bcmlibs bcmmcast bcm4916_compat bcm4916_wfd bcm_pcie_hcd; do
+			[ -f $M/extra/$k.ko ] || continue
+			A=""; [ $k = bcm4916_wfd ] && A="$WFD_PARAMS"
+			grep -q "^$k " /proc/modules || insmod $M/extra/$k.ko $A >> "$BC" 2>&1
 		done
 		# wl needs hnd/wlshared/cfg80211/emf/igs, which rc loads later in
 		# boot: wait for them in the background, then load wl (note 182)

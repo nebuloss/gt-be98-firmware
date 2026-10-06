@@ -16,7 +16,7 @@
 # Rootfs changes:
 #   rom/etc/init.d/bcm-base-drivers.sh   + guard (files/open-enet/bcm-base-drivers.guard)
 #                                          right after `start)`, before any insmod
-#   usr/lib/open-enet/load.sh            v4 (files/open-enet/load.sh)
+#   usr/lib/open-enet/load.sh            v5 (files/open-enet/load.sh)
 #   lib/modules/<kver>/extra/bcm4916-runner.ko
 #   lib/firmware/brcm/bcm4916-runner-microcode.bin
 #   lib/firmware/brcm/merlin16-shortfin.bin        (if present in the payload)
@@ -27,6 +27,7 @@
 #   $OE_PAYLOAD/bcm4916-runner-microcode.bin  RFW1 container (required)
 #   $OE_PAYLOAD/merlin16-shortfin.bin         10G serdes uC blob (optional)
 #   $OE_PAYLOAD/bcm4916_compat.ko             WiFi beside the open driver (optional)
+#   $OE_PAYLOAD/bcm4916_wfd.ko                open WFD; wl needs it with compat (optional)
 # OE_PAYLOAD defaults to <repo>/open-enet-payload.
 set -euo pipefail
 
@@ -101,6 +102,13 @@ install -m 0755 "$SRC/load.sh" "$R/usr/lib/open-enet/load.sh"
 install -m 0644 "$PAY/bcm4916-runner.ko" "$MD/bcm4916-runner.ko"
 install -m 0644 "$PAY/bcm4916-runner-microcode.bin" "$R/lib/firmware/brcm/"
 [ -f "$PAY/bcm4916_compat.ko" ] && install -m 0644 "$PAY/bcm4916_compat.ko" "$MD/bcm4916_compat.ko"
+if [ -f "$PAY/bcm4916_wfd.ko" ]; then
+	[ "$(vm "$PAY/bcm4916_wfd.ko")" = "$(vm "$MD/bcm_mpm.ko")" ] ||
+		die "vermagic mismatch: bcm4916_wfd.ko '$(vm "$PAY/bcm4916_wfd.ko")'"
+	install -m 0644 "$PAY/bcm4916_wfd.ko" "$MD/bcm4916_wfd.ko"
+elif [ -f "$PAY/bcm4916_compat.ko" ]; then
+	echo "   note: bcm4916_compat.ko without bcm4916_wfd.ko - wl lacks the WFD symbols (old compat only)"
+fi
 if [ -f "$PAY/merlin16-shortfin.bin" ]; then
 	install -m 0644 "$PAY/merlin16-shortfin.bin" "$R/lib/firmware/brcm/"
 else
