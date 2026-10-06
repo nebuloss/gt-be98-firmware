@@ -105,3 +105,13 @@ Demande confirmation, supprime `vendor/`, relance `tools/setup.sh` (garde `toolc
 | `toolchain/TOOLCHAIN_PIN` | URL, ref, commit de am-toolchains |
 
 Créés ou mis à jour par `tools/setup.sh` / `fetch-toolchain.sh`.
+
+### `open-enet-overlay.sh [BASE.pkgtb] [OUT.pkgtb]`
+
+Post-build (hôte de build) : intègre le hook de démarrage du pilote Ethernet ouvert
+([gt-be98-open-ethernet](https://github.com/nebuloss/gt-be98-open-ethernet)) dans le
+rootfs d'une image — garde dans `bcm-base-drivers.sh`, `files/open-enet/load.sh` (v4),
+`bcm4916-runner.ko` dans `lib/modules/<kver>/extra/`, microcode Runner + blob serdes dans
+`lib/firmware/brcm/`. Bootfs inchangé. Les blobs et le `.ko` viennent de `open-enet-payload/`
+(ou `$OE_PAYLOAD`), jamais de Git. Sortie : FIT 2 images pour `open-flash.sh`
+(gt-be98-buildroot), pas une image de mise à jour via l'interface web.

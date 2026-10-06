@@ -1,0 +1,12 @@
+		# --- open-ethernet hook v4 (revertible: rm /data/open_enet) ---
+		# load.sh exit 0: open driver owns the datapath (or failed after
+		# touching the Runner -> USB lifeline); skip the stock datapath.
+		# exit 1: declined with the Runner untouched -> stock as usual.
+		if [ -f /data/open_enet ] && [ -x /usr/lib/open-enet/load.sh ]; then
+			echo "open-enet: arm-flag set -> open Runner driver"
+			if /usr/lib/open-enet/load.sh; then
+				exit 0
+			fi
+			echo "open-enet: load.sh declined -> stock datapath"
+		fi
+		# --- end open-ethernet hook ---

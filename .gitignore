@@ -12,3 +12,7 @@ logs/
 .idea/
 .vscode/
 .cursor/
+
+# open-enet boot overlay: user-extracted blobs + built .ko, and output images
+open-enet-payload/
+out/
